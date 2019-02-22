@@ -68,6 +68,7 @@
 					LEFT JOIN game_teams USING (class_id)
 				GROUP BY class_id
 			SQL_BLOCK;
+			/** @var \PHPDoc\DbResults\ClassCount[] $classes */
 			$classes = $wpdb->get_results($query, OBJECT_K);
 			if(!$classes)
 			{
@@ -118,6 +119,7 @@
 					game_teams.group_id,
 					game_teams.team_name
 			SQL_BLOCK;
+			/** @var \PHPDoc\DbResults\Team[] $teams */
 			$teams = $wpdb->get_results($query, OBJECT_K);
 			if(!$teams)
 			{
@@ -191,6 +193,7 @@
 					}
 				</style>
 			HTML_BLOCK;
+			/** @var \PHPDoc\Models\GameClass[] $classes */
 			$classes = $wpdb->get_results('SELECT game_classes.* FROM game_classes', OBJECT_K);
 			$query = <<<'SQL_BLOCK'
 				SELECT
@@ -211,6 +214,7 @@
 				$where_part = 'WHERE team_id = ' . ((int) $_GET['team_id']);
 				$query = str_replace('ORDER BY', $where_part . ' ORDER BY', $query);
 			}
+			/** @var \PHPDoc\DbResults\Team[] $teams */
 			$teams = $wpdb->get_results($query, OBJECT_K);
 			$FIELD_ID = self::$GAME_TEAM_FIELD_ID;
 			$GAME_FROM_ID = self::$GAME_FROM_ID;
@@ -229,6 +233,7 @@
 					team_members DESC,
 					team_name
 			SQL_BLOCK;
+			/** @var \PHPDoc\DbResults\GFTeam[] $new_teams */
 			$new_teams = $wpdb->get_results(
 				$query,
 				OBJECT_K
@@ -266,6 +271,7 @@
 						field_number = {$GAME_CLASS_FIELD_ID} AND
 						lead_id IN ({$missing_id_string})
 				SQL_BLOCK;
+				/** @var \PHPDoc\DbResults\GFClass[] $team_classes_rows */
 				$team_classes_rows = $wpdb->get_results($query, OBJECT_K);
 				foreach($missing_teams as $lead_id => $team)
 				{
@@ -420,7 +426,9 @@
 					game_groups.class_id,
 					game_groups.group_name
 			SQL_BLOCK;
+			/** @var \PHPDoc\DbResults\GroupWithTeams[] $groups */
 			$groups = $wpdb->get_results($group_query, OBJECT_K);
+			/** @var \PHPDoc\Models\GameGroup[] $classes */
 			$classes = $wpdb->get_results('SELECT game_classes.* FROM game_classes', OBJECT_K);
 			$team_query = <<<'SQL_BLOCK'
 				SELECT
@@ -437,6 +445,7 @@
 					game_teams.group_id,
 					game_teams.team_name
 			SQL_BLOCK;
+			/** @var \PHPDoc\DbResults\Team[] $teams */
 			$teams = $wpdb->get_results($team_query, OBJECT_K);
 			if(!empty($safe_post->connect->action))
 			{
@@ -446,7 +455,9 @@
 				{
 					echo "<p class='notice'>Kopplade '{$team_safe->group_name}' till grupp '{$group_safe->group_name}'</p>";
 					// reload teams and groups
+					/** @var \PHPDoc\DbResults\GroupWithTeams[] $groups */
 					$groups = $wpdb->get_results($group_query, OBJECT_K);
+					/** @var \PHPDoc\DbResults\Team[] $teams */
 					$teams = $wpdb->get_results($team_query, OBJECT_K);
 				}
 				else
@@ -708,6 +719,7 @@
 					game_match_time.match_time,
 					game_matches.match_id
 			SQL_BLOCK;
+			/** @var \PHPDoc\DbResults\MatchWithExtra[] $matcher */
 			$matcher = $wpdb->get_results($query, OBJECT_K);
 			$query = <<<'SQL_BLOCK'
 				SELECT
@@ -724,6 +736,7 @@
 					game_teams.group_id,
 					game_teams.team_name
 			SQL_BLOCK;
+			/** @var \PHPDoc\DbResults\Team[] $teams */
 			$teams = $wpdb->get_results($query, OBJECT_K);
 			echo <<<HTML_BLOCK
 				<style>
@@ -880,6 +893,7 @@
 				}
 				$wpdb->query($query);
 			}
+			/** @var \PHPDoc\DbResults\MatchWithTime[] $matcher */
 			$matcher = $wpdb->get_results('SELECT * FROM game_matches LEFT JOIN game_match_time USING (match_id) WHERE match_id = ' . (int) $_GET['id'], OBJECT_K);
 			if(empty($matcher))
 			{
@@ -902,6 +916,7 @@
 					game_teams.group_id,
 					game_teams.team_name
 			SQL_BLOCK;
+			/** @var \PHPDoc\DbResults\Team[] $teams */
 			$teams = $wpdb->get_results($query, OBJECT_K);
 			echo <<<HTML_BLOCK
 				<form action='#' method='post'>
@@ -1005,6 +1020,7 @@
 				GROUP BY referee_id
 				ORDER BY referee_code
 			SQL_BLOCK;
+			/** @var \PHPDoc\DbResults\RefereeCount[] $referees */
 			$referees = $wpdb->get_results($query, OBJECT_K);
 			echo <<<HTML_BLOCK
 				<style>

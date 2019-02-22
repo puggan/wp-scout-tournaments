@@ -128,3 +128,80 @@
 		 */
 		class Result {}
 	}
+
+	namespace PHPDoc\DbResults
+	{
+		use PHPDoc\Models\GameClass;
+		use PHPDoc\Models\GameGroup;
+		use PHPDoc\Models\Match;
+		use PHPDoc\Models\Referee;
+
+		/**
+		 * Class RefereesCount
+		 * @package PHPDoc\DbResults
+		 * @property string c
+		 */
+		class RefereeCount extends Referee {}
+
+		/**
+		 * Class ClassCount
+		 * @package PHPDoc\DbResults
+		 * @property string teams
+		 */
+		class ClassCount extends GameClass {}
+
+		/**
+		 * Class Team
+		 * @package PHPDoc\DbResults
+		 * @property string team_id
+		 * @property string team_name
+		 * @property string class_name
+		 * @property string group_name
+		 */
+		class Team {}
+
+		/**
+		 * Class GFTeams
+		 * @package PHPDoc\DbResults
+		 * @property string team_name
+		 * @property string team_members
+		 * @property string lead_id
+		 */
+		class GFTeam {}
+
+		/**
+		 * Class GFClasses
+		 * @package PHPDoc\DbResults
+		 * @property string lead_id
+		 * @property string class_name
+		 */
+		class GFClass {}
+
+		/**
+		 * Class GroupsWithTeams
+		 * @package PHPDoc\DbResults
+		 * @property string class_name
+		 * @property string team_count
+		 * @property string teams
+		 */
+		class GroupWithTeams extends GameGroup {}
+
+		/**
+		 * Class MatchesWithExtra
+		 * @package PHPDoc\DbResults
+		 * @property string field_id
+		 * @property string match_time
+		 * @property string|null match_status
+		 */
+		class MatchWithTime extends Match {}
+
+		/**
+		 * Class MatchesWithExtra
+		 * @package PHPDoc\DbResults
+		 * @property string match_time
+		 * @property string field_name
+		 * @property string referee_name
+		 * @property string match_status
+		 */
+		class MatchWithExtra extends Match {}
+	}
