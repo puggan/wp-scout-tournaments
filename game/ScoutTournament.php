@@ -87,6 +87,7 @@
 			{
 				foreach($classes as $class)
 				{
+					/** @var \PHPDoc\DbResults\ClassCount $safe_class */
 					$safe_class = self::html_encode_object($class);
 					echo <<<HTML_BLOCK
 						<tr>
@@ -138,6 +139,7 @@
 			{
 				foreach($teams as $team)
 				{
+					/** @var \PHPDoc\DbResults\Team $teams */
 					$safe_team = self::html_encode_object($team);
 					echo <<<HTML_BLOCK
 						<tr>
@@ -248,7 +250,9 @@
 			{
 				$team_names[$team->team_name] = $team->team_id;
 			}
+			/** @var \PHPDoc\DbResults\GFTeam[] $missing_teams */
 			$missing_teams = [];
+			/** @var int[] $missing_team_lead_ids */
 			$missing_team_lead_ids = [];
 			foreach($new_teams as $team)
 			{
@@ -324,7 +328,9 @@
 				foreach($missing_teams as $lead_id => $team)
 				{
 					$team_class = $classes[$team->class_id];
+					/** @var \PHPDoc\DbResults\GFTeam[] $safe_team */
 					$safe_team = self::html_encode_object($team);
+					/** @var \PHPDoc\Models\GameClass $safe_team_class */
 					$safe_team_class = self::html_encode_object($team_class);
 					echo <<<HTML_TAG
 						<tr>
@@ -362,6 +368,7 @@
 			HTML_BLOCK;
 			foreach($classes as $class_id => $class)
 			{
+				/** @var \PHPDoc\Models\GameClass $safe_class */
 				$safe_class = self::html_encode_object($class);
 				echo "<option value='{$class_id}'>{$safe_class->class_name}</option>";
 			}
@@ -431,7 +438,7 @@
 			SQL_BLOCK;
 			/** @var \PHPDoc\DbResults\GroupWithTeams[] $groups */
 			$groups = $wpdb->get_results($group_query, OBJECT_K);
-			/** @var \PHPDoc\Models\GameGroup[] $classes */
+			/** @var \PHPDoc\Models\GameClass[] $classes */
 			$classes = $wpdb->get_results('SELECT game_classes.* FROM game_classes', OBJECT_K);
 			$team_query = <<<'SQL_BLOCK'
 				SELECT
@@ -452,11 +459,13 @@
 			$teams = $wpdb->get_results($team_query, OBJECT_K);
 			if(!empty($safe_post->connect->action))
 			{
-				$team_safe = self::html_encode_object( $teams[$_POST['connect']['team_id']]);
-				$group_safe = self::html_encode_object($groups[$_POST['connect']['group_id']]);
+				/** @var \PHPDoc\DbResults\Team $safe_team */
+				$safe_team = self::html_encode_object( $teams[$_POST['connect']['team_id']]);
+				/** @var \PHPDoc\DbResults\GroupWithTeams $safe_group */
+				$safe_group = self::html_encode_object($groups[$_POST['connect']['group_id']]);
 				if(self::set_team_group($_POST['connect']['team_id'], $_POST['connect']['group_id']))
 				{
-					echo "<p class='notice'>Kopplade '{$team_safe->group_name}' till grupp '{$group_safe->group_name}'</p>";
+					echo "<p class='notice'>Kopplade '{$safe_team->group_name}' till grupp '{$safe_group->group_name}'</p>";
 					// reload teams and groups
 					/** @var \PHPDoc\DbResults\GroupWithTeams[] $groups */
 					$groups = $wpdb->get_results($group_query, OBJECT_K);
@@ -465,7 +474,7 @@
 				}
 				else
 				{
-					echo "<p class='warning'>Misslyckades koppla '{$team_safe->group_name}' till grupp '{$group_safe->group_name}'</p>";
+					echo "<p class='warning'>Misslyckades koppla '{$safe_team->group_name}' till grupp '{$safe_group->group_name}'</p>";
 				}
 			}
 			echo <<<HTML_BLOCK
@@ -495,6 +504,7 @@
 			{
 				foreach($groups as $group)
 				{
+					/** @var \PHPDoc\DbResults\GroupWithTeams $safe_group */
 					$safe_group = self::html_encode_object($group);
 					echo <<<HTML_BLOCK
 						<tr>
@@ -533,6 +543,7 @@
 			HTML_BLOCK;
 			foreach($classes as $class_id => $class)
 			{
+				/** @var \PHPDoc\Models\GameClass $safe_class */
 				$safe_class = self::html_encode_object($class);
 				echo "<option value='{$class_id}'>{$safe_class->class_name}</option>";
 			}
@@ -557,6 +568,7 @@
 			HTML_BLOCK;
 			foreach($teams as $team_id => $team)
 			{
+				/** @var \PHPDoc\DbResults\Team $safe_team */
 				$safe_team = self::html_encode_object($team);
 				if($team->group_name)
 				{
@@ -577,6 +589,7 @@
 			HTML_BLOCK;
 			foreach($groups as $group_id => $group)
 			{
+				/** @var \PHPDoc\DbResults\GroupWithTeams $safe_group */
 				$safe_group = self::html_encode_object($group);
 				if($group_id === +($_POST['connect']['group_id'] ?? 0))
 				{
@@ -772,8 +785,11 @@
 			{
 				foreach($matcher as $match)
 				{
-					$safe_match= self::html_encode_object($match);
+					/** @var \PHPDoc\DbResults\MatchWithExtra $safe_match */
+					$safe_match = self::html_encode_object($match);
+					/** @var \PHPDoc\DbResults\Team $safe_home_team */
 					$safe_home_team = self::html_encode_object($teams[$match->home_team_id] ?? []);
+					/** @var \PHPDoc\DbResults\Team $safe_away_team */
 					$safe_away_team = self::html_encode_object($teams[$match->away_team_id] ?? []);
 					$home_team_name = $match->home_team_id ? $safe_home_team->team_name : $match->home_team_description;
 					$away_team_name = $match->away_team_id ? $safe_away_team->team_name : $match->away_team_description;
@@ -822,6 +838,7 @@
 			HTML_BLOCK;
 			foreach($teams as $team)
 			{
+				/** @var \PHPDoc\DbResults\Team $safe_team */
 				$safe_team = self::html_encode_object($team);
 				echo "<option value='{$team->team_id}'>{$safe_team->team_name}</option>";
 			}
@@ -835,6 +852,7 @@
 			HTML_BLOCK;
 			foreach($teams as $team)
 			{
+				/** @var \PHPDoc\DbResults\Team $safe_team */
 				$safe_team = self::html_encode_object($team);
 				echo "<option value='{$team->team_id}'>{$safe_team->team_name}</option>";
 			}
@@ -902,6 +920,7 @@
 				throw new \RuntimeException('Bad id');
 			}
 			$match = array_values($matcher)[0];
+			/** @var \PHPDoc\DbResults\MatchWithTime $safe_match */
 			$safe_match = self::html_encode_object($match);
 			$query = <<<'SQL_BLOCK'
 				SELECT
@@ -933,6 +952,7 @@
 			HTML_BLOCK;
 			foreach($teams as $team)
 			{
+				/** @var \PHPDoc\DbResults\Team $safe_team */
 				$safe_team = self::html_encode_object($team);
 				if($match->home_team_id === $team->team_id)
 				{
@@ -956,6 +976,7 @@
 			HTML_BLOCK;
 			foreach($teams as $team)
 			{
+				/** @var \PHPDoc\DbResults\Team $safe_team */
 				$safe_team = self::html_encode_object($team);
 				if($match->away_team_id === $team->team_id)
 				{
@@ -1051,6 +1072,7 @@
 			{
 				foreach($referees as $referee)
 				{
+					/** @var \PHPDoc\DbResults\RefereeCount $safe_referee */
 					$safe_referee = self::html_encode_object($referee);
 					echo <<<HTML_BLOCK
 						<tr>
