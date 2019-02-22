@@ -1,4 +1,16 @@
 <?php
+
+	use PHPDoc\DbResults\ClassCount;
+	use PHPDoc\DbResults\GFClass;
+	use PHPDoc\DbResults\GFTeam;
+	use PHPDoc\DbResults\GFTeamWithClass;
+	use PHPDoc\DbResults\GroupWithTeams;
+	use PHPDoc\DbResults\MatchWithExtra;
+	use PHPDoc\DbResults\MatchWithTime;
+	use PHPDoc\DbResults\RefereeCount;
+	use PHPDoc\DbResults\Team;
+	use PHPDoc\Models\GameClass;
+
 	add_action('admin_menu', 'ScoutTournament::init_add_game_menu');
 	class ScoutTournament
 	{
@@ -73,7 +85,7 @@
 					LEFT JOIN game_teams USING (class_id)
 				GROUP BY class_id
 			SQL_BLOCK;
-			/** @var \PHPDoc\DbResults\ClassCount[] $classes */
+			/** @var ClassCount[] $classes */
 			$classes = $wpdb->get_results($query, OBJECT_K);
 			if(!$classes)
 			{
@@ -87,7 +99,7 @@
 			{
 				foreach($classes as $class)
 				{
-					/** @var \PHPDoc\DbResults\ClassCount $safe_class */
+					/** @var ClassCount $safe_class */
 					$safe_class = self::html_encode_object($class);
 					echo <<<HTML_BLOCK
 						<tr>
@@ -125,7 +137,7 @@
 					game_teams.group_id,
 					game_teams.team_name
 			SQL_BLOCK;
-			/** @var \PHPDoc\DbResults\Team[] $teams */
+			/** @var Team[] $teams */
 			$teams = $wpdb->get_results($query, OBJECT_K);
 			if(!$teams)
 			{
@@ -139,7 +151,7 @@
 			{
 				foreach($teams as $team)
 				{
-					/** @var \PHPDoc\DbResults\Team $teams */
+					/** @var Team $teams */
 					$safe_team = self::html_encode_object($team);
 					echo <<<HTML_BLOCK
 						<tr>
@@ -200,7 +212,7 @@
 					}
 				</style>
 			HTML_BLOCK;
-			/** @var \PHPDoc\Models\GameClass[] $classes */
+			/** @var GameClass[] $classes */
 			$classes = $wpdb->get_results('SELECT game_classes.* FROM game_classes', OBJECT_K);
 			$query = <<<'SQL_BLOCK'
 				SELECT
@@ -221,7 +233,7 @@
 				$where_part = 'WHERE team_id = ' . ((int) $_GET['team_id']);
 				$query = str_replace('ORDER BY', $where_part . ' ORDER BY', $query);
 			}
-			/** @var \PHPDoc\DbResults\Team[] $teams */
+			/** @var Team[] $teams */
 			$teams = $wpdb->get_results($query, OBJECT_K);
 			$FIELD_ID = self::$GAME_TEAM_FIELD_ID;
 			$GAME_FROM_ID = self::$GAME_FROM_ID;
@@ -240,7 +252,7 @@
 					team_members DESC,
 					team_name
 			SQL_BLOCK;
-			/** @var \PHPDoc\DbResults\GFTeam[] $new_teams */
+			/** @var GFTeam[] $new_teams */
 			$new_teams = $wpdb->get_results(
 				$query,
 				OBJECT_K
@@ -250,7 +262,7 @@
 			{
 				$team_names[$team->team_name] = $team->team_id;
 			}
-			/** @var \PHPDoc\DbResults\GFTeam[] $missing_teams */
+			/** @var GFTeamWithClass[] $missing_teams */
 			$missing_teams = [];
 			/** @var int[] $missing_team_lead_ids */
 			$missing_team_lead_ids = [];
@@ -280,7 +292,7 @@
 						field_number = {$GAME_CLASS_FIELD_ID} AND
 						lead_id IN ({$missing_id_string})
 				SQL_BLOCK;
-				/** @var \PHPDoc\DbResults\GFClass[] $team_classes_rows */
+				/** @var GFClass[] $team_classes_rows */
 				$team_classes_rows = $wpdb->get_results($query, OBJECT_K);
 				foreach($missing_teams as $lead_id => $team)
 				{
@@ -328,9 +340,9 @@
 				foreach($missing_teams as $lead_id => $team)
 				{
 					$team_class = $classes[$team->class_id];
-					/** @var \PHPDoc\DbResults\GFTeam[] $safe_team */
+					/** @var GFTeam $safe_team */
 					$safe_team = self::html_encode_object($team);
-					/** @var \PHPDoc\Models\GameClass $safe_team_class */
+					/** @var GameClass $safe_team_class */
 					$safe_team_class = self::html_encode_object($team_class);
 					echo <<<HTML_TAG
 						<tr>
@@ -368,7 +380,7 @@
 			HTML_BLOCK;
 			foreach($classes as $class_id => $class)
 			{
-				/** @var \PHPDoc\Models\GameClass $safe_class */
+				/** @var GameClass $safe_class */
 				$safe_class = self::html_encode_object($class);
 				echo "<option value='{$class_id}'>{$safe_class->class_name}</option>";
 			}
@@ -387,11 +399,11 @@
 			global $wpdb;
 			if(empty($data['team_name']))
 			{
-				throw new \RuntimeException("self::game_add_team() require 'team_name'");
+				throw new RuntimeException("self::game_add_team() require 'team_name'");
 			}
 			if(empty($data['class_id']))
 			{
-				throw new \RuntimeException("self::game_add_team() require 'class_id'");
+				throw new RuntimeException("self::game_add_team() require 'class_id'");
 			}
 			// FIXME: buld add, double encodes ' => in database \'
 			return $wpdb->insert(
@@ -436,9 +448,9 @@
 					game_groups.class_id,
 					game_groups.group_name
 			SQL_BLOCK;
-			/** @var \PHPDoc\DbResults\GroupWithTeams[] $groups */
+			/** @var GroupWithTeams[] $groups */
 			$groups = $wpdb->get_results($group_query, OBJECT_K);
-			/** @var \PHPDoc\Models\GameClass[] $classes */
+			/** @var GameClass[] $classes */
 			$classes = $wpdb->get_results('SELECT game_classes.* FROM game_classes', OBJECT_K);
 			$team_query = <<<'SQL_BLOCK'
 				SELECT
@@ -455,21 +467,21 @@
 					game_teams.group_id,
 					game_teams.team_name
 			SQL_BLOCK;
-			/** @var \PHPDoc\DbResults\Team[] $teams */
+			/** @var Team[] $teams */
 			$teams = $wpdb->get_results($team_query, OBJECT_K);
 			if(!empty($safe_post->connect->action))
 			{
-				/** @var \PHPDoc\DbResults\Team $safe_team */
+				/** @var Team $safe_team */
 				$safe_team = self::html_encode_object( $teams[$_POST['connect']['team_id']]);
-				/** @var \PHPDoc\DbResults\GroupWithTeams $safe_group */
+				/** @var GroupWithTeams $safe_group */
 				$safe_group = self::html_encode_object($groups[$_POST['connect']['group_id']]);
 				if(self::set_team_group($_POST['connect']['team_id'], $_POST['connect']['group_id']))
 				{
 					echo "<p class='notice'>Kopplade '{$safe_team->group_name}' till grupp '{$safe_group->group_name}'</p>";
 					// reload teams and groups
-					/** @var \PHPDoc\DbResults\GroupWithTeams[] $groups */
+					/** @var GroupWithTeams[] $groups */
 					$groups = $wpdb->get_results($group_query, OBJECT_K);
-					/** @var \PHPDoc\DbResults\Team[] $teams */
+					/** @var Team[] $teams */
 					$teams = $wpdb->get_results($team_query, OBJECT_K);
 				}
 				else
@@ -504,7 +516,7 @@
 			{
 				foreach($groups as $group)
 				{
-					/** @var \PHPDoc\DbResults\GroupWithTeams $safe_group */
+					/** @var GroupWithTeams $safe_group */
 					$safe_group = self::html_encode_object($group);
 					echo <<<HTML_BLOCK
 						<tr>
@@ -543,7 +555,7 @@
 			HTML_BLOCK;
 			foreach($classes as $class_id => $class)
 			{
-				/** @var \PHPDoc\Models\GameClass $safe_class */
+				/** @var GameClass $safe_class */
 				$safe_class = self::html_encode_object($class);
 				echo "<option value='{$class_id}'>{$safe_class->class_name}</option>";
 			}
@@ -568,7 +580,7 @@
 			HTML_BLOCK;
 			foreach($teams as $team_id => $team)
 			{
-				/** @var \PHPDoc\DbResults\Team $safe_team */
+				/** @var Team $safe_team */
 				$safe_team = self::html_encode_object($team);
 				if($team->group_name)
 				{
@@ -589,7 +601,7 @@
 			HTML_BLOCK;
 			foreach($groups as $group_id => $group)
 			{
-				/** @var \PHPDoc\DbResults\GroupWithTeams $safe_group */
+				/** @var GroupWithTeams $safe_group */
 				$safe_group = self::html_encode_object($group);
 				if($group_id === +($_POST['connect']['group_id'] ?? 0))
 				{
@@ -615,11 +627,11 @@
 			global $wpdb;
 			if(empty($data['group_name']))
 			{
-				throw new \RuntimeException("game_add_group() require 'group_name'");
+				throw new RuntimeException("game_add_group() require 'group_name'");
 			}
 			if(empty($data['class_id']))
 			{
-				throw new \RuntimeException("game_add_group() require 'class_id'");
+				throw new RuntimeException("game_add_group() require 'class_id'");
 			}
 			return $wpdb->insert(
 				'game_groups',
@@ -733,7 +745,7 @@
 					game_match_time.match_time,
 					game_matches.match_id
 			SQL_BLOCK;
-			/** @var \PHPDoc\DbResults\MatchWithExtra[] $matcher */
+			/** @var MatchWithExtra[] $matcher */
 			$matcher = $wpdb->get_results($query, OBJECT_K);
 			$query = <<<'SQL_BLOCK'
 				SELECT
@@ -750,7 +762,7 @@
 					game_teams.group_id,
 					game_teams.team_name
 			SQL_BLOCK;
-			/** @var \PHPDoc\DbResults\Team[] $teams */
+			/** @var Team[] $teams */
 			$teams = $wpdb->get_results($query, OBJECT_K);
 			echo <<<HTML_BLOCK
 				<style>
@@ -785,11 +797,11 @@
 			{
 				foreach($matcher as $match)
 				{
-					/** @var \PHPDoc\DbResults\MatchWithExtra $safe_match */
+					/** @var MatchWithExtra $safe_match */
 					$safe_match = self::html_encode_object($match);
-					/** @var \PHPDoc\DbResults\Team $safe_home_team */
+					/** @var Team $safe_home_team */
 					$safe_home_team = self::html_encode_object($teams[$match->home_team_id] ?? []);
-					/** @var \PHPDoc\DbResults\Team $safe_away_team */
+					/** @var Team $safe_away_team */
 					$safe_away_team = self::html_encode_object($teams[$match->away_team_id] ?? []);
 					$home_team_name = $match->home_team_id ? $safe_home_team->team_name : $match->home_team_description;
 					$away_team_name = $match->away_team_id ? $safe_away_team->team_name : $match->away_team_description;
@@ -838,7 +850,7 @@
 			HTML_BLOCK;
 			foreach($teams as $team)
 			{
-				/** @var \PHPDoc\DbResults\Team $safe_team */
+				/** @var Team $safe_team */
 				$safe_team = self::html_encode_object($team);
 				echo "<option value='{$team->team_id}'>{$safe_team->team_name}</option>";
 			}
@@ -852,7 +864,7 @@
 			HTML_BLOCK;
 			foreach($teams as $team)
 			{
-				/** @var \PHPDoc\DbResults\Team $safe_team */
+				/** @var Team $safe_team */
 				$safe_team = self::html_encode_object($team);
 				echo "<option value='{$team->team_id}'>{$safe_team->team_name}</option>";
 			}
@@ -885,7 +897,7 @@
 			$safe_post = self::html_encode_object($_POST);
 			if(empty($_GET['id']))
 			{
-				throw new \RuntimeException('No id');
+				throw new RuntimeException('No id');
 			}
 			if(isset($safe_post->home_team_id))
 			{
@@ -913,14 +925,14 @@
 				}
 				$wpdb->query($query);
 			}
-			/** @var \PHPDoc\DbResults\MatchWithTime[] $matcher */
+			/** @var MatchWithTime[] $matcher */
 			$matcher = $wpdb->get_results('SELECT * FROM game_matches LEFT JOIN game_match_time USING (match_id) WHERE match_id = ' . (int) $_GET['id'], OBJECT_K);
 			if(empty($matcher))
 			{
-				throw new \RuntimeException('Bad id');
+				throw new RuntimeException('Bad id');
 			}
 			$match = array_values($matcher)[0];
-			/** @var \PHPDoc\DbResults\MatchWithTime $safe_match */
+			/** @var MatchWithTime $safe_match */
 			$safe_match = self::html_encode_object($match);
 			$query = <<<'SQL_BLOCK'
 				SELECT
@@ -937,7 +949,7 @@
 					game_teams.group_id,
 					game_teams.team_name
 			SQL_BLOCK;
-			/** @var \PHPDoc\DbResults\Team[] $teams */
+			/** @var Team[] $teams */
 			$teams = $wpdb->get_results($query, OBJECT_K);
 			echo <<<HTML_BLOCK
 				<form action='#' method='post'>
@@ -952,7 +964,7 @@
 			HTML_BLOCK;
 			foreach($teams as $team)
 			{
-				/** @var \PHPDoc\DbResults\Team $safe_team */
+				/** @var Team $safe_team */
 				$safe_team = self::html_encode_object($team);
 				if($match->home_team_id === $team->team_id)
 				{
@@ -976,7 +988,7 @@
 			HTML_BLOCK;
 			foreach($teams as $team)
 			{
-				/** @var \PHPDoc\DbResults\Team $safe_team */
+				/** @var Team $safe_team */
 				$safe_team = self::html_encode_object($team);
 				if($match->away_team_id === $team->team_id)
 				{
@@ -1043,7 +1055,7 @@
 				GROUP BY referee_id
 				ORDER BY referee_code
 			SQL_BLOCK;
-			/** @var \PHPDoc\DbResults\RefereeCount[] $referees */
+			/** @var RefereeCount[] $referees */
 			$referees = $wpdb->get_results($query, OBJECT_K);
 			echo <<<HTML_BLOCK
 				<style>
@@ -1072,7 +1084,7 @@
 			{
 				foreach($referees as $referee)
 				{
-					/** @var \PHPDoc\DbResults\RefereeCount $safe_referee */
+					/** @var RefereeCount $safe_referee */
 					$safe_referee = self::html_encode_object($referee);
 					echo <<<HTML_BLOCK
 						<tr>
