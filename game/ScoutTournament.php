@@ -380,7 +380,10 @@
 				echo <<<HTML_BLOCK
 							</tbody>
 						</table>
-						<input type='submit' name='bulk_button' value='Lägg till markerade lag' />
+						<label>
+							<span></span>
+							<input type='submit' name='bulk_button' value='Lägg till markerade lag' />
+						</label>
 					</form>
 				HTML_BLOCK;
 			}
@@ -415,6 +418,7 @@
 						<label>
 							<span style='display: inline-block; width: 120px;'></span>
 							<input type='submit' name='add[action]' style='width: 200px;' value='Registrera lag' />
+						</label>
 					</fieldset>
 				</form>
 			HTML_BLOCK;
@@ -467,6 +471,17 @@
 				else
 				{
 					echo "<p class='warning'>Misslyckades registrera Grupp {$safe_post->add->group_name}</p>";
+				}
+			}
+			if(!empty($safe_post->class->action))
+			{
+				if(self::game_add_class($_POST['class']['class_name']))
+				{
+					echo "<p class='notice'>Klass {$safe_post->class->class_name} registrerad</p>";
+				}
+				else
+				{
+					echo "<p class='warning'>Misslyckades registrera kl<zz {$safe_post->class->class_name}</p>";
 				}
 			}
 			$group_query = <<<'SQL_BLOCK'
@@ -654,6 +669,22 @@
 						<label>
 							<span style='display: inline-block; width: 120px;'></span>
 							<input type='submit' name='connect[action]' style='width: 200px;' value='Koppla' />
+						</label>
+					</fieldset>
+				</form>
+				<form action='#' method='post'>
+					<fieldset>
+						<legend>
+							<h2>Skapa Klass</h2>
+						</legend>
+						<label>
+							<span style='display: inline-block; width: 120px;'>Klass:</span>
+							<input name='class[class_name]' style='width: 200px;' />
+						</label><br />
+						<label>
+							<span style='display: inline-block; width: 120px;'></span>
+							<input type='submit' name='class[action]' style='width: 200px;' value='Skapa' />
+						</label>
 					</fieldset>
 				</form>
 			HTML_BLOCK;
@@ -685,6 +716,30 @@
 				[
 					'%s',
 					'%d',
+				]
+			);
+		}
+
+		/**
+		 * @param string[]|int[] $data string group_name & int class_id
+		 *
+		 * @return false|int
+		 * @throws RuntimeException
+		 */
+		public static function game_add_class($name)
+		{
+			global $wpdb;
+			if(empty($name))
+			{
+				throw new RuntimeException("game_add_group() require name");
+			}
+			return $wpdb->insert(
+				'game_classes',
+				[
+					'class_name' => $name,
+				],
+				[
+					'%s',
 				]
 			);
 		}
@@ -899,7 +954,7 @@
 						</label><br />
 						<label>
 							<span style='display: inline-block; width: 120px;'>Hemma lag</span>
-							<select type='submit' name='add[home]' style='width: 200px;'>
+							<select name='add[home]' style='width: 200px;'>
 								<option value=''>-- Hemma lag --</option>
 			HTML_BLOCK;
 			foreach($teams as $team)
@@ -913,7 +968,7 @@
 				</label><br />
 				<label>
 					<span style='display: inline-block; width: 120px;'>Borta lag</span>
-					<select type='submit' name='add[away]' style='width: 200px;'>
+					<select name='add[away]' style='width: 200px;'>
 						<option value=''>-- Borta lag --</option>
 			HTML_BLOCK;
 			foreach($teams as $team)
