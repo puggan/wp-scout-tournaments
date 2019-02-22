@@ -1,4 +1,5 @@
-CREATE TABLE game_fields (
+CREATE TABLE game_fields
+(
 	field_id BIGINT UNSIGNED AUTO_INCREMENT NOT NULL,
 	field_name VARCHAR(200) NOT NULL,
 	PRIMARY KEY (field_id)
@@ -7,7 +8,8 @@ CREATE TABLE game_fields (
 INSERT INTO game_fields SET field_name = 'Vänster Plan';
 INSERT INTO game_fields SET field_name = 'Höger Plan';
 
-CREATE TABLE game_classes (
+CREATE TABLE game_classes
+(
 	class_id BIGINT UNSIGNED AUTO_INCREMENT NOT NULL,
 	class_name VARCHAR(200) NOT NULL,
 	PRIMARY KEY (class_id)
@@ -17,7 +19,8 @@ INSERT INTO game_classes SET class_name = 'Utmanare';
 INSERT INTO game_classes SET class_name = 'Rover';
 INSERT INTO game_classes SET class_name = 'Mix';
 	
-CREATE TABLE game_groups (
+CREATE TABLE game_groups
+(
 	group_id BIGINT UNSIGNED AUTO_INCREMENT NOT NULL,
 	class_id BIGINT UNSIGNED NOT NULL,
 	group_name VARCHAR(200) NOT NULL,
@@ -25,7 +28,8 @@ CREATE TABLE game_groups (
 	KEY (class_id)
 );
 
-CREATE TABLE game_teams (
+CREATE TABLE game_teams
+(
 	team_id BIGINT UNSIGNED AUTO_INCREMENT NOT NULL,
 	class_id BIGINT UNSIGNED NOT NULL,
 	group_id BIGINT UNSIGNED NULL,
@@ -35,7 +39,8 @@ CREATE TABLE game_teams (
 	KEY (group_id)
 );
 
-CREATE TABLE game_playoffs (
+CREATE TABLE game_playoffs
+(
 	playoff_id BIGINT UNSIGNED AUTO_INCREMENT NOT NULL,
 	class_id BIGINT UNSIGNED NOT NULL,
 	playoff_name VARCHAR(200) NOT NULL,
@@ -44,7 +49,8 @@ CREATE TABLE game_playoffs (
 	KEY (class_id)
 );
 
-CREATE TABLE game_playoffs_team (
+CREATE TABLE game_playoffs_team
+(
 	playoffs_team_id BIGINT UNSIGNED AUTO_INCREMENT NOT NULL,
 	playoff_id BIGINT UNSIGNED NOT NULL,
 	playoffs_team_position BIGINT UNSIGNED NOT NULL,
@@ -54,7 +60,8 @@ CREATE TABLE game_playoffs_team (
 	KEY (playoff_id, team_id)
 );
 
-CREATE TABLE game_matches (
+CREATE TABLE game_matches
+(
 	match_id BIGINT UNSIGNED AUTO_INCREMENT NOT NULL,
 	match_type ENUM('GROUP', 'PLAYOFF'),
 	match_type_id BIGINT UNSIGNED NULL,
@@ -65,15 +72,17 @@ CREATE TABLE game_matches (
 	KEY (away_team_id)
 );
 
-CREATE TABLE game_match_time (
+CREATE TABLE game_match_time
+(
 	match_id BIGINT UNSIGNED NOT NULL,
 	field_id BIGINT UNSIGNED NOT NULL,
 	match_time DATETIME NOT NULL,
 	match_status ENUM('QUEUE', 'STARTED', 'PLAYED'),
 	PRIMARY KEY (match_id)
 );
-	
-CREATE TABLE game_breaks (
+
+CREATE TABLE game_breaks
+(
 	break_id BIGINT UNSIGNED AUTO_INCREMENT NOT NULL,
 	break_name VARCHAR(200) NOT NULL,
 	break_from DATETIME NOT NULL,
