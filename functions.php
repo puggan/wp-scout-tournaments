@@ -520,4 +520,4 @@ function hip_no_featured_image_on_password_protected_posts( $html, $post_id, $po
 	endif;  	
 }
 
-include "game/functions.php";
+include 'game/ScoutTournament.php';
