@@ -19,11 +19,21 @@
 		public static $GAME_CLASS_FIELD_ID = 14;
 		public static $GAME_TEAM_FIELD_ID = 16;
 
+		/**
+		 * @param string $s
+		 *
+		 * @return string
+		 */
 		public static function html_encode(string $s) : string
 		{
 			return htmlentities($s, ENT_QUOTES | ENT_XHTML);
 		}
 
+		/**
+		 * @param object|array $a
+		 *
+		 * @return object
+		 */
 		public static function html_encode_object($a)
 		{
 			$o = (object) [];
@@ -44,6 +54,9 @@
 			return $o;
 		}
 
+		/**
+		 * @return void
+		 */
 		public static function init_add_game_menu() : void
 		{
 			$icon_url = get_template_directory_uri() . '/game/ball.png';
@@ -57,6 +70,9 @@
 			add_submenu_page($menu_slug, 'Dommare', 'Dommare', $capability, $menu_slug . '_referees', 'ScoutTournament::game_referees_page');
 		}
 
+		/**
+		 * @return void
+		 */
 		public static function game_page() : void
 		{
 			global $wpdb;
@@ -173,6 +189,9 @@
 			HTML_BLOCK;
 		}
 
+		/**
+		 * @throws RuntimeException
+		 */
 		public static function game_team_page() : void
 		{
 			global $wpdb;
@@ -401,6 +420,12 @@
 			HTML_BLOCK;
 		}
 
+		/**
+		 * @param int[]|string[] $data string team_name, int class_id
+		 *
+		 * @return false|int
+		 * @throws RuntimeException
+		 */
 		public static function game_add_team($data)
 		{
 			global $wpdb;
@@ -426,6 +451,9 @@
 			);
 		}
 
+		/**
+		 * @throws RuntimeException
+		 */
 		public static function game_group_page() : void
 		{
 			global $wpdb;
@@ -631,6 +659,12 @@
 			HTML_BLOCK;
 		}
 
+		/**
+		 * @param string[]|int[] $data string group_name & int class_id
+		 *
+		 * @return false|int
+		 * @throws RuntimeException
+		 */
 		public static function game_add_group($data)
 		{
 			global $wpdb;
@@ -655,6 +689,12 @@
 			);
 		}
 
+		/**
+		 * @param int $team_id
+		 * @param int $group_id
+		 *
+		 * @return false|int
+		 */
 		public static function set_team_group($team_id, $group_id)
 		{
 			global $wpdb;
@@ -675,6 +715,9 @@
 			);
 		}
 
+		/**
+		 * @return void
+		 */
 		public static function game_match_page() : void
 		{
 			global $wpdb;
@@ -902,6 +945,9 @@
 			HTML_BLOCK;
 		}
 
+		/**
+		 * @throws RuntimeException
+		 */
 		public static function game_edit_match_page() : void
 		{
 			global $wpdb;
@@ -1032,6 +1078,9 @@
 			HTML_BLOCK;
 		}
 
+		/**
+		 * @return void
+		 */
 		public static function game_referees_page() : void
 		{
 			global $wpdb;
