@@ -375,13 +375,11 @@
 			global $wpdb;
 			if(empty($data['team_name']))
 			{
-				trigger_error("self::game_add_team() require 'team_name'");
-				return FALSE;
+				throw new \RuntimeException("self::game_add_team() require 'team_name'");
 			}
 			if(empty($data['class_id']))
 			{
-				trigger_error("self::game_add_team() require 'class_id'");
-				return FALSE;
+				throw new \RuntimeException("self::game_add_team() require 'class_id'");
 			}
 			// FIXME: buld add, double encodes ' => in database \'
 			return $wpdb->insert(
@@ -599,13 +597,11 @@
 			global $wpdb;
 			if(empty($data['group_name']))
 			{
-				trigger_error("game_add_group() require 'group_name'");
-				return FALSE;
+				throw new \RuntimeException("game_add_group() require 'group_name'");
 			}
 			if(empty($data['class_id']))
 			{
-				trigger_error("game_add_group() require 'class_id'");
-				return FALSE;
+				throw new \RuntimeException("game_add_group() require 'class_id'");
 			}
 			return $wpdb->insert(
 				'game_groups',
@@ -859,13 +855,14 @@
 				</form>
 			HTML_BLOCK;
 		}
+
 		public static function game_edit_match_page() : void
 		{
 			global $wpdb;
 			$safe_post = self::html_encode_object($_POST);
 			if(empty($_GET['id']))
 			{
-				die('No id');
+				throw new \RuntimeException('No id');
 			}
 			if(isset($safe_post->home_team_id))
 			{
@@ -897,7 +894,7 @@
 			$matcher = $wpdb->get_results('SELECT * FROM game_matches LEFT JOIN game_match_time USING (match_id) WHERE match_id = ' . (int) $_GET['id'], OBJECT_K);
 			if(empty($matcher))
 			{
-				die('Bad id');
+				throw new \RuntimeException('Bad id');
 			}
 			$match = array_values($matcher)[0];
 			$safe_match = self::html_encode_object($match);
