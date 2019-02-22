@@ -394,11 +394,11 @@
 						<legend>
 							<h2>Registrera Lag</h2>
 						</legend>
-						<lable>
+						<label>
 							<span style='display: inline-block; width: 120px;'>Lagnamn:</span>
 							<input name='add[team_name]' style='width: 200px;' />
 						</label><br />
-						<lable>
+						<label>
 							<span style='display: inline-block; width: 120px;'>Klass:</span>
 							<select name='add[class_id]' style='width: 200px;' >
 								<option value=''>V&auml;lj klass</option>
@@ -412,7 +412,7 @@
 			echo <<<HTML_BLOCK
 							</select>
 						</label><br />
-						<lable>
+						<label>
 							<span style='display: inline-block; width: 120px;'></span>
 							<input type='submit' name='add[action]' style='width: 200px;' value='Registrera lag' />
 					</fieldset>
@@ -474,7 +474,7 @@
 					game_groups.*,
 					game_classes.class_name,
 					COUNT(game_teams.team_id) AS team_count,
-					GROUP_CONCAT(game_teams.team_name SEPARATOR ", ") AS teams
+					GROUP_CONCAT(game_teams.team_name SEPARATOR ', ') AS teams
 				FROM game_groups
 				   LEFT JOIN game_classes USING (class_id)
 				   LEFT JOIN game_teams USING (class_id, group_id)
@@ -580,11 +580,11 @@
 						<legend>
 							<h2>Registrera Grupp</h2>
 						</legend>
-						<lable>
+						<label>
 							<span style='display: inline-block; width: 120px;'>Gruppnamn:</span>
 							<input name='add[group_name]' style='width: 200px;' />
 						</label><br />
-						<lable>
+						<label>
 							<span style='display: inline-block; width: 120px;'>Klass:</span>
 							<select name='add[class_id]' style='width: 200px;'>
 								<option value=''>V&auml;lj klass</option>
@@ -598,10 +598,10 @@
 			echo <<<HTML_BLOCK
 							</select>
 						</label><br />
-						<lable>
+						<label>
 							<span style='display: inline-block; width: 120px;'></span>
 							<input type='submit' name='add[action]' style='width: 200px;' value='Registrera grupp' />
-						</lable>
+						</label>
 					</fieldset>
 				</form>
 				<form action='#' method='post'>
@@ -609,7 +609,7 @@
 						<legend>
 							<h2>Koppla Lag</h2>
 						</legend>
-						<lable>
+						<label>
 							<span style='display: inline-block; width: 120px;'>Klass:</span>
 							<select name='connect[team_id]' style='width: 200px;' >
 								<option value=''>V&auml;lj lag</option>
@@ -630,7 +630,7 @@
 			echo <<<HTML_BLOCK
 					</select>
 				</label><br />
-				<lable>
+				<label>
 					<span style='display: inline-block; width: 120px;'>Grupp:</span>
 					<select name='connect[group_id]' style='width: 200px;' >
 						<option value=''>V&auml;lj grupp</option>
@@ -651,7 +651,7 @@
 			echo <<<HTML_BLOCK
 							</select>
 						</label><br />
-						<lable>
+						<label>
 							<span style='display: inline-block; width: 120px;'></span>
 							<input type='submit' name='connect[action]' style='width: 200px;' value='Koppla' />
 					</fieldset>
@@ -891,13 +891,13 @@
 						<legend>
 							<h2>Lägg till match</h2>
 						</legend>
-						<lable>
+						<label>
 							<span style='display: inline-block; width: 120px;'>Type</span>
 							<select name='add[type]' style='width: 200px;'>
 								<option value='OTHER'>Annan</option>
 							</select>
-						</lable><br />
-						<lable>
+						</label><br />
+						<label>
 							<span style='display: inline-block; width: 120px;'>Hemma lag</span>
 							<select type='submit' name='add[home]' style='width: 200px;'>
 								<option value=''>-- Hemma lag --</option>
@@ -910,8 +910,8 @@
 			}
 			echo <<<HTML_BLOCK
 					</select>
-				</lable><br />
-				<lable>
+				</label><br />
+				<label>
 					<span style='display: inline-block; width: 120px;'>Borta lag</span>
 					<select type='submit' name='add[away]' style='width: 200px;'>
 						<option value=''>-- Borta lag --</option>
@@ -924,11 +924,11 @@
 			}
 			echo <<<HTML_BLOCK
 							</select>
-						<lable><br />
-						<lable>
+						<label><br />
+						<label>
 							<span style='display: inline-block; width: 120px;'></span>
 							<input type='submit' name='add[submit]' style='width: 200px;' value='Add match' />
-						</lable>
+						</label>
 					</fieldset>
 				</form>
 				<form action='#' method='post'>
@@ -936,10 +936,10 @@
 						<legend>
 							<h2>Generera Matcher</h2>
 						</legend>
-						<lable>
+						<label>
 							<span style='display: inline-block; width: 120px;'></span>
 							<input type='submit' name='generate[group]' style='width: 200px;' value='Genererar Gruppmatcher' />
-						</lable>
+						</label>
 					</fieldset>
 				</form>
 			HTML_BLOCK;
@@ -1172,18 +1172,18 @@
 						<legend>
 							<h2>Lägg till dommare</h2>
 						</legend>
-						<lable>
+						<label>
 							<span style='display: inline-block; width: 120px;'>Kod:</span>
 							<input name='add[referee_code]' style='width: 200px;' />
 						</label><br />
-						<lable>
+						<label>
 							<span style='display: inline-block; width: 120px;'>Namn:</span>
 							<input name='add[referee_name]' style='width: 200px;' />
 						</label><br />
-						<lable>
+						<label>
 							<span style='display: inline-block; width: 120px;'></span>
 							<input type='submit' name='add[action]' style='width: 200px;' value='Lägg till dommare' />
-						</lable>
+						</label>
 					</fieldset>
 				</form>
 			HTML_BLOCK;
