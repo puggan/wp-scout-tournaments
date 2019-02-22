@@ -394,6 +394,7 @@ blockquote{
 	list-style:none;
 	font:24px/26px 'scouternadinpro-medium-webfont', Arial, Helvetica, sans-serif;
 	background: url("images/bg-nav.png") no-repeat;
+	background-size: cover;
 	margin:0 0 0 -8px;
 	padding:4px 0 4px 6px;
 }
@@ -469,6 +470,7 @@ a.assistive-text-main:focus	 {
 	background:url(images/bg-promo.png) no-repeat;
 	margin:0 -11px;
 	padding: 23px 33px 22px 26px;
+	background-size: cover;
 }
 .promo p {
 	font: 28px/28px 'scouternadinpro-regular-webfont', Arial, Helvetica, sans-serif;
@@ -667,6 +669,7 @@ a.assistive-text-main:focus	 {
 	float:left;
 	width:242px;
 	margin-right:28px;
+	min-height: 1px;
 }
 .columns .left-column .image-box {
 	overflow:hidden;
