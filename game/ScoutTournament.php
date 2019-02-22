@@ -12,15 +12,18 @@
 	use PHPDoc\Models\GameClass;
 
 	add_action('admin_menu', 'ScoutTournament::init_add_game_menu');
+
 	class ScoutTournament
 	{
 		public static $GAME_FROM_ID = 1;
 		public static $GAME_CLASS_FIELD_ID = 14;
 		public static $GAME_TEAM_FIELD_ID = 16;
+
 		public static function html_encode(string $s) : string
 		{
 			return htmlentities($s, ENT_QUOTES | ENT_XHTML);
 		}
+
 		public static function html_encode_object($a)
 		{
 			$o = (object) [];
@@ -40,6 +43,7 @@
 			}
 			return $o;
 		}
+
 		public static function init_add_game_menu() : void
 		{
 			$icon_url = get_template_directory_uri() . '/game/ball.png';
@@ -52,6 +56,7 @@
 			add_submenu_page($menu_slug, 'Edit Match', 'Edit Match', $capability, $menu_slug . '_edit_match', 'ScoutTournament::game_edit_match_page');
 			add_submenu_page($menu_slug, 'Dommare', 'Dommare', $capability, $menu_slug . '_referees', 'ScoutTournament::game_referees_page');
 		}
+
 		public static function game_page() : void
 		{
 			global $wpdb;
@@ -167,6 +172,7 @@
 				</table>
 			HTML_BLOCK;
 		}
+
 		public static function game_team_page() : void
 		{
 			global $wpdb;
@@ -394,6 +400,7 @@
 				</form>
 			HTML_BLOCK;
 		}
+
 		public static function game_add_team($data)
 		{
 			global $wpdb;
@@ -418,6 +425,7 @@
 				]
 			);
 		}
+
 		public static function game_group_page() : void
 		{
 			global $wpdb;
@@ -472,7 +480,7 @@
 			if(!empty($safe_post->connect->action))
 			{
 				/** @var Team $safe_team */
-				$safe_team = self::html_encode_object( $teams[$_POST['connect']['team_id']]);
+				$safe_team = self::html_encode_object($teams[$_POST['connect']['team_id']]);
 				/** @var GroupWithTeams $safe_group */
 				$safe_group = self::html_encode_object($groups[$_POST['connect']['group_id']]);
 				if(self::set_team_group($_POST['connect']['team_id'], $_POST['connect']['group_id']))
@@ -622,6 +630,7 @@
 				</form>
 			HTML_BLOCK;
 		}
+
 		public static function game_add_group($data)
 		{
 			global $wpdb;
@@ -645,6 +654,7 @@
 				]
 			);
 		}
+
 		public static function set_team_group($team_id, $group_id)
 		{
 			global $wpdb;
@@ -664,6 +674,7 @@
 				]
 			);
 		}
+
 		public static function game_match_page() : void
 		{
 			global $wpdb;
@@ -1020,6 +1031,7 @@
 				</form>
 			HTML_BLOCK;
 		}
+
 		public static function game_referees_page() : void
 		{
 			global $wpdb;
