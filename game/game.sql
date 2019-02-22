@@ -18,7 +18,7 @@ CREATE TABLE game_classes
 INSERT INTO game_classes SET class_name = 'Utmanare';
 INSERT INTO game_classes SET class_name = 'Rover';
 INSERT INTO game_classes SET class_name = 'Mix';
-	
+
 CREATE TABLE game_groups
 (
 	group_id BIGINT UNSIGNED AUTO_INCREMENT NOT NULL,
@@ -63,10 +63,13 @@ CREATE TABLE game_playoffs_team
 CREATE TABLE game_matches
 (
 	match_id BIGINT UNSIGNED AUTO_INCREMENT NOT NULL,
-	match_type ENUM('GROUP', 'PLAYOFF'),
+	match_type ENUM('GROUP','PLAYOFF','OTHER') NULL,
 	match_type_id BIGINT UNSIGNED NULL,
 	home_team_id BIGINT NULL,
 	away_team_id BIGINT NULL,
+	home_team_description VARCHAR(255) NULL,
+	away_team_description VARCHAR(255) NULL,
+	match_display_name tinytext NOT NULL,
 	PRIMARY KEY (match_id),
 	KEY (home_team_id),
 	KEY (away_team_id)
@@ -77,7 +80,7 @@ CREATE TABLE game_match_time
 	match_id BIGINT UNSIGNED NOT NULL,
 	field_id BIGINT UNSIGNED NOT NULL,
 	match_time DATETIME NOT NULL,
-	match_status ENUM('QUEUE', 'STARTED', 'PLAYED'),
+	match_status ENUM('QUEUE','STARTED','PLAYED') NULL,
 	PRIMARY KEY (match_id)
 );
 
