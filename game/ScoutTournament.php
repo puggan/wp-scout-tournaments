@@ -19,6 +19,11 @@
 					$o->$key = self::html_encode_object($value);
 					continue;
 				}
+				if(!$value)
+				{
+					$o->$key = '';
+					continue;
+				}
 				$o->$key = self::html_encode($value);
 			}
 			return $o;
