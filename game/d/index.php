@@ -22,11 +22,11 @@
 		echo <<<HTML_BLOCK
 <html>
 	<head>
-		<title>IBN18 - Dommare</title>
+		<title>IBN19 - Dommare</title>
 	</head>
 	<body>
 		<div style='width: 800px; margin: auto;'>
-			<h1>IBN18 - Dommare</h1>
+			<h1>IBN19 - Dommare</h1>
 			<form>
 				<fieldset>
 					<label><span>Dommarkod:</span><input name='u' /></label>
@@ -95,7 +95,7 @@ HTML_BLOCK;
 	echo <<<HTML_BLOCK
 <html>
 	<head>
-		<title>IBN18 - Dommare - {$user['referee_name']}</title>
+		<title>IBN19 - Dommare - {$user['referee_name']}</title>
 
 		<script src="http://www.fridabraxell.se/onload_manager.js"></script>
 		<script src="http://www.fridabraxell.se/misc.js"></script>
@@ -144,7 +144,7 @@ HTML_BLOCK;
 	<body>
 		<div style='width: 800px; margin: auto;'>
 			{$messages_html}
-			<h1>IBN18 - Dommare - {$user['referee_name']}</h1>
+			<h1>IBN19 - Dommare - {$user['referee_name']}</h1>
 HTML_BLOCK;
 
 	if(isset($_GET['m']))

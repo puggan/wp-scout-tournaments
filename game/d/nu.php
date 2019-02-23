@@ -42,7 +42,7 @@ SQL_BLOCK;
 	echo <<<HTML_BLOCK
 <html>
 	<head>
-		<title>IBN18 - Mål</title>
+		<title>IBN19 - Mål</title>
 		<link href="http://www.fridabraxell.se/tables.css" type="text/css" rel="stylesheet" />
 		<style>
 			H1 SPAN.goals
@@ -159,7 +159,7 @@ HTML_BLOCK;
 
 	echo <<<HTML_BLOCK
 		</div>
-		<p style="text-align: center;">Se resultat och schema i mobilen på ibn18.se</p>
+		<p style="text-align: center;">Se resultat och schema i mobilen på ibn19.se</p>
 		<p style="text-align: center;">Wifi: Linksys</p>
 	</body>
 </html>

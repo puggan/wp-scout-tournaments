@@ -34,7 +34,7 @@ SQL_BLOCK;
 	echo <<<HTML_BLOCK
 <html>
 	<head>
-		<title>IBN18 - Mål</title>
+		<title>IBN19 - Mål</title>
 		<link href="http://www.fridabraxell.se/tables.css" type="text/css" rel="stylesheet" />
 		<meta http-equiv="refresh" content="5" />
 		<style>
