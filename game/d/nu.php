@@ -43,7 +43,7 @@ SQL_BLOCK;
 <html>
 	<head>
 		<title>IBN19 - Mål</title>
-		<link href="http://www.fridabraxell.se/tables.css" type="text/css" rel="stylesheet" />
+		<link href="/d/js/tables.css" type="text/css" rel="stylesheet" />
 		<style>
 			H1 SPAN.goals
 			{

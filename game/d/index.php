@@ -64,45 +64,35 @@ HTML_BLOCK;
 
 	if(isset($_GET['play']))
 	{
-		$set_parts = array();
-		$set_parts[] = "referee_id = " . $referee_id;
-		$set_parts[] = "match_id = " . (int) $_GET['play'];
-		$query = "INSERT INTO game_match_referees SET " . implode(", ", $set_parts);
+		$set_parts = [];
+		$set_parts[] = 'referee_id = ' . $user->referee_id;
+		$set_parts[] = 'match_id = ' . (int) $_GET['play'];
+		$query = 'INSERT INTO game_match_referees SET ' . implode(', ', $set_parts);
 
 		if($database->update($query))
 		{
-			header("Location: ?u={$user['referee_code']}&m=" . (int) $_GET['play']);
-			die();
+			header("Location: ?u={$user->referee_code}&m=" . (int) $_GET['play']);
+			exit();
 		}
-		else
-		{
-			$messages[] = "Misslycakdes boka match {$_GET['book']}";
-			$messages[] = $query;
-		}
+
+		$messages[] = "Misslycakdes boka match {$_GET['book']}";
+		$messages[] = $query;
 	}
 
-// 	print_r($user);
+	$messages_html = $messages ? '<ul><li>' . implode('</li><li>', $messages) . '</li></ul>' : '';
 
-	if($messages)
-	{
-		$messages_html = "<ul><li>" . implode("</li><li>", $messages) . "</li></ul>";
-	}
-	else
-	{
-		$messages_html = "";
-	}
-
+	$referee_name = e($user->referee_name);
 	echo <<<HTML_BLOCK
 <html>
 	<head>
-		<title>IBN19 - Dommare - {$user['referee_name']}</title>
+		<title>IBN19 - Dommare - {$referee_name}</title>
 
-		<script src="http://www.fridabraxell.se/onload_manager.js"></script>
-		<script src="http://www.fridabraxell.se/misc.js"></script>
-		<script src="http://www.fridabraxell.se/filter_table.js"></script>
-		<script src="http://www.fridabraxell.se/sort_table2.js"></script>
-		<script src="http://www.fridabraxell.se/set_checkboxes_in_form.js"></script>
-		<link href="http://www.fridabraxell.se/tables.css" type="text/css" rel="stylesheet" />
+		<script src="/d/js/onload_manager.js"></script>
+		<script src="/d/js/misc.js"></script>
+		<script src="/d/js/filter_table.js"></script>
+		<script src="/d/js/sort_table2.js"></script>
+		<script src="/d/js/set_checkboxes_in_form.js"></script>
+		<link href="/d/js/tables.css" type="text/css" rel="stylesheet" />
 		<style>
 
 			TABLE
