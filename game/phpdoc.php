@@ -240,4 +240,23 @@
 		 * @property string c
 		 */
 		class TeamPlaceholderCount {}
+
+		/**
+		 * Class MatchResult
+		 * @package PHPDoc\DbResults
+		 *
+		 * @property string home_team_name
+		 * @property string away_team_name
+		 * @property string match_id
+		 * @property string referee_id
+		 * @property string home_goals
+		 * @property string away_goals
+		 * @property string done
+		 * @property string|null referee_code
+		 * @property string referee_name
+		 * @property string field_id
+		 * @property string match_time
+		 * @property string|null match_status
+		 */
+		class MatchResult {}
 	}
