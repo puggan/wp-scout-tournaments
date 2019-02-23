@@ -22,6 +22,23 @@
 		public static $GAME_TEAM_FIELD_ID = 16;
 
 		/**
+		 * @return void
+		 */
+		public static function init_add_game_menu() : void
+		{
+			$icon_url = get_template_directory_uri() . '/game/ball.png';
+			$menu_slug = 'game';
+			$capability = 'edit_pages';
+			add_menu_page('Administrera Spel', 'Spel', $capability, $menu_slug, 'ScoutTournament::game_page', $icon_url, 58);
+			add_submenu_page($menu_slug, 'Deltagande Lag', 'Lag', $capability, $menu_slug . '_teams', 'ScoutTournament::game_team_page');
+			add_submenu_page($menu_slug, 'Grupper', 'Grupp', $capability, $menu_slug . '_groups', 'ScoutTournament::game_group_page');
+			add_submenu_page($menu_slug, 'Matcher', 'Match', $capability, $menu_slug . '_match', 'ScoutTournament::game_match_page');
+			add_submenu_page($menu_slug, 'Edit Match', 'Edit Match', $capability, $menu_slug . '_edit_match', 'ScoutTournament::game_edit_match_page');
+			add_submenu_page($menu_slug, 'Dommare', 'Dommare', $capability, $menu_slug . '_referees', 'ScoutTournament::game_referees_page');
+		}
+
+		//<editor-fold desc="Functions">
+		/**
 		 * @param string $s
 		 *
 		 * @return string
@@ -57,21 +74,163 @@
 		}
 
 		/**
-		 * @return void
+		 * @param int[]|string[] $data string team_name, int class_id
+		 *
+		 * @return false|int
+		 * @throws RuntimeException
 		 */
-		public static function init_add_game_menu() : void
+		public static function game_add_team($data)
 		{
-			$icon_url = get_template_directory_uri() . '/game/ball.png';
-			$menu_slug = 'game';
-			$capability = 'edit_pages';
-			add_menu_page('Administrera Spel', 'Spel', $capability, $menu_slug, 'ScoutTournament::game_page', $icon_url, 58);
-			add_submenu_page($menu_slug, 'Deltagande Lag', 'Lag', $capability, $menu_slug . '_teams', 'ScoutTournament::game_team_page');
-			add_submenu_page($menu_slug, 'Grupper', 'Grupp', $capability, $menu_slug . '_groups', 'ScoutTournament::game_group_page');
-			add_submenu_page($menu_slug, 'Matcher', 'Match', $capability, $menu_slug . '_match', 'ScoutTournament::game_match_page');
-			add_submenu_page($menu_slug, 'Edit Match', 'Edit Match', $capability, $menu_slug . '_edit_match', 'ScoutTournament::game_edit_match_page');
-			add_submenu_page($menu_slug, 'Dommare', 'Dommare', $capability, $menu_slug . '_referees', 'ScoutTournament::game_referees_page');
+			global $wpdb;
+			if(empty($data['team_name']))
+			{
+				throw new RuntimeException("self::game_add_team() require 'team_name'");
+			}
+			if(empty($data['class_id']))
+			{
+				throw new RuntimeException("self::game_add_team() require 'class_id'");
+			}
+			// FIXME: buld add, double encodes ' => in database \'
+			return $wpdb->insert(
+				'game_teams',
+				[
+					'team_name' => $data['team_name'],
+					'class_id' => $data['class_id'],
+				],
+				[
+					'%s',
+					'%d',
+				]
+			);
 		}
 
+		/**
+		 * @param string[]|int[] $data string group_name & int class_id
+		 *
+		 * @return false|int
+		 * @throws RuntimeException
+		 */
+		public static function game_add_group($data)
+		{
+			global $wpdb;
+			if(empty($data['group_name']))
+			{
+				throw new RuntimeException("game_add_group() require 'group_name'");
+			}
+			if(empty($data['class_id']))
+			{
+				throw new RuntimeException("game_add_group() require 'class_id'");
+			}
+			return $wpdb->insert(
+				'game_groups',
+				[
+					'group_name' => $data['group_name'],
+					'class_id' => $data['class_id'],
+				],
+				[
+					'%s',
+					'%d',
+				]
+			);
+		}
+
+		/**
+		 * @param string $name string
+		 *
+		 * @return false|int
+		 * @throws RuntimeException
+		 */
+		public static function game_add_class($name)
+		{
+			global $wpdb;
+			if(empty($name))
+			{
+				throw new RuntimeException('game_add_class() require name');
+			}
+			return $wpdb->insert(
+				'game_classes',
+				[
+					'class_name' => $name,
+				],
+				[
+					'%s',
+				]
+			);
+		}
+
+		/**
+		 * @param int $team_id
+		 * @param int $group_id
+		 *
+		 * @return false|int
+		 */
+		public static function set_team_group($team_id, $group_id)
+		{
+			global $wpdb;
+			return $wpdb->update(
+				'game_teams',
+				[
+					'group_id' => $group_id,
+				],
+				[
+					'team_id' => $team_id,
+				],
+				[
+					'%d',
+				],
+				[
+					'%d',
+				]
+			);
+		}
+
+		/**
+		 * @param string $placeholder
+		 * @param int $team_id
+		 */
+		public static function game_connect_placeholder($placeholder, $team_id) : void
+		{
+			global $wpdb;
+
+			$wpdb->update(
+				'game_matches',
+				[
+					'home_team_id' => $team_id,
+				],
+				[
+					'home_team_id' => NULL,
+					'home_team_description' => $placeholder,
+				],
+				[
+					'%d',
+				],
+				[
+					'%d',
+					'%s',
+				]
+			);
+
+			$wpdb->update(
+				'game_matches',
+				[
+					'away_team_id' => $team_id,
+				],
+				[
+					'away_team_id' => NULL,
+					'away_team_description' => $placeholder,
+				],
+				[
+					'%d',
+				],
+				[
+					'%d',
+					'%s',
+				]
+			);
+		}
+		//</editor-fold>
+
+		//<editor-fold desc="Pages">
 		/**
 		 * @return void
 		 */
@@ -605,37 +764,6 @@
 		}
 
 		/**
-		 * @param int[]|string[] $data string team_name, int class_id
-		 *
-		 * @return false|int
-		 * @throws RuntimeException
-		 */
-		public static function game_add_team($data)
-		{
-			global $wpdb;
-			if(empty($data['team_name']))
-			{
-				throw new RuntimeException("self::game_add_team() require 'team_name'");
-			}
-			if(empty($data['class_id']))
-			{
-				throw new RuntimeException("self::game_add_team() require 'class_id'");
-			}
-			// FIXME: buld add, double encodes ' => in database \'
-			return $wpdb->insert(
-				'game_teams',
-				[
-					'team_name' => $data['team_name'],
-					'class_id' => $data['class_id'],
-				],
-				[
-					'%s',
-					'%d',
-				]
-			);
-		}
-
-		/**
 		 * @throws RuntimeException
 		 */
 		public static function game_group_page() : void
@@ -868,86 +996,6 @@
 					</fieldset>
 				</form>
 			HTML_BLOCK;
-		}
-
-		/**
-		 * @param string[]|int[] $data string group_name & int class_id
-		 *
-		 * @return false|int
-		 * @throws RuntimeException
-		 */
-		public static function game_add_group($data)
-		{
-			global $wpdb;
-			if(empty($data['group_name']))
-			{
-				throw new RuntimeException("game_add_group() require 'group_name'");
-			}
-			if(empty($data['class_id']))
-			{
-				throw new RuntimeException("game_add_group() require 'class_id'");
-			}
-			return $wpdb->insert(
-				'game_groups',
-				[
-					'group_name' => $data['group_name'],
-					'class_id' => $data['class_id'],
-				],
-				[
-					'%s',
-					'%d',
-				]
-			);
-		}
-
-		/**
-		 * @param string $name string
-		 *
-		 * @return false|int
-		 * @throws RuntimeException
-		 */
-		public static function game_add_class($name)
-		{
-			global $wpdb;
-			if(empty($name))
-			{
-				throw new RuntimeException('game_add_class() require name');
-			}
-			return $wpdb->insert(
-				'game_classes',
-				[
-					'class_name' => $name,
-				],
-				[
-					'%s',
-				]
-			);
-		}
-
-		/**
-		 * @param int $team_id
-		 * @param int $group_id
-		 *
-		 * @return false|int
-		 */
-		public static function set_team_group($team_id, $group_id)
-		{
-			global $wpdb;
-			return $wpdb->update(
-				'game_teams',
-				[
-					'group_id' => $group_id,
-				],
-				[
-					'team_id' => $team_id,
-				],
-				[
-					'%d',
-				],
-				[
-					'%d',
-				]
-			);
 		}
 
 		/**
@@ -1423,49 +1471,5 @@
 				</form>
 			HTML_BLOCK;
 		}
-
-		/**
-		 * @param string $placeholder
-		 * @param int $team_id
-		 */
-		public static function game_connect_placeholder($placeholder, $team_id) : void
-		{
-			global $wpdb;
-
-			$wpdb->update(
-				'game_matches',
-				[
-					'home_team_id' => $team_id,
-				],
-				[
-					'home_team_id' => NULL,
-					'home_team_description' => $placeholder,
-				],
-				[
-					'%d',
-				],
-				[
-					'%d',
-					'%s',
-				]
-			);
-
-			$wpdb->update(
-				'game_matches',
-				[
-					'away_team_id' => $team_id,
-				],
-				[
-					'away_team_id' => NULL,
-					'away_team_description' => $placeholder,
-				],
-				[
-					'%d',
-				],
-				[
-					'%d',
-					'%s',
-				]
-			);
-		}
+		//</editor-fold>
 	}
