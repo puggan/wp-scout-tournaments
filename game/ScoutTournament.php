@@ -1024,6 +1024,8 @@
 		{
 			global $wpdb;
 			$safe_post = self::html_encode_object($_POST);
+			$html_parts = (object) [];
+
 			if(isset($safe_post->add))
 			{
 				$set_parts = [];
@@ -1120,37 +1122,10 @@
 			SQL_BLOCK;
 			/** @var Team[] $teams */
 			$teams = $wpdb->get_results($query, OBJECT_K);
-			echo <<<HTML_BLOCK
-				<style>
-				TABLE.puggan_table TD, TABLE.puggan_table TH
-				{
-					padding: 3px 8px;
-					border: solid black 1px;
-				}
-				TABLE.puggan_table
-				{
-					border: solid gray 2px;
-				}
-				</style>
-				<h2>Matcher</h2>
-				<table class='puggan_table'>
-					<thead>
-						<tr>
-							<th>Id</th>
-							<th>Lag 1</th>
-							<th>Lag 2</th>
-							<th>Grupp</th>
-							<th>Class</th>
-							<th>Time</th>
-							<th>Plan</th>
-							<th>Referee</th>
-							<th>Status</th>
-						</tr>
-					</thead>
-					<tbody>
-			HTML_BLOCK;
+
 			if($matcher)
 			{
+				$html_parts->match_tbody = '';
 				foreach($matcher as $match)
 				{
 					/** @var MatchWithExtra $safe_match */
@@ -1162,7 +1137,7 @@
 					$home_team_name = $match->home_team_id ? $safe_home_team->team_name : $match->home_team_description;
 					$away_team_name = $match->away_team_id ? $safe_away_team->team_name : $match->away_team_description;
 					$match_time = $match->match_time ? $safe_match->match_time : '(set)';
-					echo <<<HTML_BLOCK
+					$html_parts->match_tbody .= <<<HTML_BLOCK
 						<tr>
 							<td>{$match->match_id}</td>
 							<td>{$home_team_name}</td>
@@ -1179,15 +1154,55 @@
 			}
 			else
 			{
-				echo <<<HTML_BLOCK
+				$html_parts->match_tbody = <<<HTML_BLOCK
 					<tr>
 						<td colspan='4'>Inga matcher</td>
 					</tr>
 				HTML_BLOCK;
 			}
+
+			$html_parts->team_options = '';
+			foreach($teams as $team)
+			{
+				/** @var Team $safe_team */
+				$safe_team = self::html_encode_object($team);
+				$html_parts->team_options .= "<option value='{$team->team_id}'>{$safe_team->team_name}</option>";
+			}
+
 			echo <<<HTML_BLOCK
+				<style>
+					TABLE.puggan_table TD, TABLE.puggan_table TH
+					{
+						padding: 3px 8px;
+						border: solid black 1px;
+					}
+
+					TABLE.puggan_table
+					{
+						border: solid gray 2px;
+					}
+				</style>
+
+				<h2>Matcher</h2>
+				<table class='puggan_table'>
+					<thead>
+						<tr>
+							<th>Id</th>
+							<th>Lag 1</th>
+							<th>Lag 2</th>
+							<th>Grupp</th>
+							<th>Class</th>
+							<th>Time</th>
+							<th>Plan</th>
+							<th>Referee</th>
+							<th>Status</th>
+						</tr>
+					</thead>
+					<tbody>
+						{$html_parts->match_tbody}
 					</tbody>
 				</table>
+
 				<form action='#' method='post'>
 					<fieldset>
 						<legend>
@@ -1203,28 +1218,14 @@
 							<span style='display: inline-block; width: 120px;'>Hemma lag</span>
 							<select name='add[home]' style='width: 200px;'>
 								<option value=''>-- Hemma lag --</option>
-			HTML_BLOCK;
-			foreach($teams as $team)
-			{
-				/** @var Team $safe_team */
-				$safe_team = self::html_encode_object($team);
-				echo "<option value='{$team->team_id}'>{$safe_team->team_name}</option>";
-			}
-			echo <<<HTML_BLOCK
-					</select>
-				</label><br />
-				<label>
-					<span style='display: inline-block; width: 120px;'>Borta lag</span>
-					<select name='add[away]' style='width: 200px;'>
-						<option value=''>-- Borta lag --</option>
-			HTML_BLOCK;
-			foreach($teams as $team)
-			{
-				/** @var Team $safe_team */
-				$safe_team = self::html_encode_object($team);
-				echo "<option value='{$team->team_id}'>{$safe_team->team_name}</option>";
-			}
-			echo <<<HTML_BLOCK
+								{$html_parts->team_options}
+							</select>
+						</label><br />
+						<label>
+							<span style='display: inline-block; width: 120px;'>Borta lag</span>
+							<select name='add[away]' style='width: 200px;'>
+								<option value=''>-- Borta lag --</option>
+								{$html_parts->team_options}
 							</select>
 						<label><br />
 						<label>
@@ -1233,6 +1234,7 @@
 						</label>
 					</fieldset>
 				</form>
+
 				<form action='#' method='post'>
 					<fieldset>
 						<legend>
