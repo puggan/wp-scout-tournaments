@@ -1,5 +1,6 @@
-<?php
+<?php /** @noinspection UnusedFunctionResultInspection */
 
+	use PHPDoc\DbResults\AutoCount;
 	use PHPDoc\DbResults\ClassCount;
 	use PHPDoc\DbResults\GFClass;
 	use PHPDoc\DbResults\GFTeam;
@@ -9,6 +10,7 @@
 	use PHPDoc\DbResults\MatchWithTime;
 	use PHPDoc\DbResults\RefereeCount;
 	use PHPDoc\DbResults\Team;
+	use PHPDoc\DbResults\TeamPlaceholderCount;
 	use PHPDoc\Models\GameClass;
 
 	add_action('admin_menu', 'ScoutTournament::init_add_game_menu');
@@ -474,11 +476,11 @@
 					game_team_autoselect.type_id
 			SQL_BLOCK;
 
-			/** @var \PHPDoc\DbResults\AutoCount[] $auto_rows */
+			/** @var AutoCount[] $auto_rows */
 			$auto_rows = $wpdb->get_results($query, OBJECT_K);
 			foreach($auto_rows as $auto_row)
 			{
-				/** @var \PHPDoc\DbResults\AutoCount $safe_auto_row */
+				/** @var AutoCount $safe_auto_row */
 				$safe_auto_row = self::html_encode_object($auto_row);
 				if($auto_row->auto_connected < $auto_row->auto_count)
 				{
@@ -530,7 +532,8 @@
 				SELECT
 					team,
 					COUNT(*) as c
-				FROM (
+				FROM
+				(
 
 				   SELECT
 						match_id * 2 + 0 as dummy_id,
@@ -571,11 +574,11 @@
 			$team_options = implode(PHP_EOL, $team_options_groups);
 
 
-			/** @var \PHPDoc\DbResults\TeamPlaceholderCount[] $auto_rows */
+			/** @var TeamPlaceholderCount[] $placeholders */
 			$placeholders = $wpdb->get_results($query, OBJECT_K);
 			foreach($placeholders as $placeholder)
 			{
-				/** @var \PHPDoc\DbResults\TeamPlaceholderCount $safe_auto_row */
+				/** @var TeamPlaceholderCount $safe_placeholder */
 				$safe_placeholder = self::html_encode_object($placeholder);
 
 				echo <<<HTML_BLOCK
@@ -658,7 +661,7 @@
 				}
 				else
 				{
-					echo "<p class='warning'>Misslyckades registrera kl<zz {$safe_post->class->class_name}</p>";
+					echo "<p class='warning'>Misslyckades registrera klass {$safe_post->class->class_name}</p>";
 				}
 			}
 			$group_query = <<<'SQL_BLOCK'
@@ -898,7 +901,7 @@
 		}
 
 		/**
-		 * @param string[]|int[] $data string group_name & int class_id
+		 * @param string $name string
 		 *
 		 * @return false|int
 		 * @throws RuntimeException
@@ -908,7 +911,7 @@
 			global $wpdb;
 			if(empty($name))
 			{
-				throw new RuntimeException("game_add_group() require name");
+				throw new RuntimeException('game_add_class() require name');
 			}
 			return $wpdb->insert(
 				'game_classes',
