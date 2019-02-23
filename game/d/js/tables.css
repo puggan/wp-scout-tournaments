@@ -1,0 +1,307 @@
+table
+{
+	width: 928px;
+	margin: 16px auto;
+
+	background-color: #f4f4f4;
+	border: 1px solid #7f7f7f;
+	border-radius: 3px;
+	
+	clear: both;
+}
+
+form table.full
+{
+	margin-left: 8px;
+}
+
+table.full
+{
+	width: 928px;
+	margin-left: 16px;
+	padding: 0px;
+	clear: both;
+}
+
+table.half
+{
+	padding: 0px;
+	margin: 0px;
+	margin-bottom: 16px;
+	margin-left: 16px;
+	width: 456px;
+}
+
+table.third
+{
+	padding: 0px;
+	margin: 0px;
+	margin-bottom: 16px;
+	margin-left: 16px;
+	width: 298px;
+}
+
+table.two_thirds
+{
+	padding: 0px;
+	margin: 0px;
+	margin-bottom: 16px;
+	margin-left: 16px;
+	width: 615px;
+}
+
+td { background-color: #efefef; }
+
+th, td {
+	padding: 4px 4px;
+}
+
+th img, td img {
+	vertical-align: text-bottom;
+	padding: 1px;
+
+	/* Vad var tanken bakom margin-bottom/right nedan? /Aron
+	margin-bottom: -3px;
+	margin-right: 4px;*/
+}
+
+thead th, tfoot th
+{
+	background-color: rgb(175, 194, 196);
+	background-image: url('header_background.png') !important;
+	background-position: top left !important;
+	background-repeat: repeat-x !important;
+	border: 1px solid rgba(0, 0, 0, 0.40) !important;
+	border-radius: 2px !important;
+
+	font-size: 11px;
+	text-align: center;
+	text-shadow: 0px 0px 2px #ffffff;
+
+	padding: 4px 4px;
+	height: 13px;
+}
+
+tbody th
+{
+	background: rgb(236, 247, 248);
+	border: 1px solid rgba(0, 0, 0, 0.40) !important;
+	border-radius: 2px !important;
+	box-shadow: inset 0px 8px 10px -8px rgba(0, 0, 0, 0.3);
+	
+	font-size: 11px;
+	text-align: center;
+	text-shadow: 0px 0px 2px #ffffff;
+
+	padding: 4px 4px;
+	height: 17px;
+}
+
+tbody th span
+{
+	color: rgb(27, 59, 83);
+}
+
+th.attention 
+{ 
+	background: rgb(255, 252, 215) !important;
+	border-top: 1px solid rgb(165, 152, 86) !important;
+	border-right: 1px solid rgb(172, 152, 90) !important;
+	border-bottom: 1px solid rgba(172, 152, 90, 0.8) !important;
+	border-left: 1px solid rgb(192, 173, 113) !important;
+	color: rgb(71, 59, 0) !important;
+}
+
+.inactive_warning th
+{
+	background-color: rgb(236, 141, 141) !important;
+	
+}
+
+th.warning
+{
+	background: rgb(255, 240, 240) !important;
+	border-top: 1px solid rgba(173, 103, 103, 0.8) !important;
+	border-right: 1px solid rgba(190, 113, 113, 0.8) !important;
+	border-bottom: 1px solid rgba(190, 113, 113, 0.8) !important;
+	border-left: 1px solid rgba(190, 113, 113, 0.8) !important;
+	color: rgb(107, 27, 27) !important;
+}
+
+td {
+	border: 1px solid rgba(0, 0, 0, 0.25);
+	border-radius: 2px;
+}
+
+tr.even td { background: rgba(255,255,255,0.2); }
+tr.odd td { background: rgba(0,0,0,0.2); }
+
+
+
+tr td { background: #E7E7E7; }
+tr.valid td { background-color: #9fef7f; }
+tr.pending td { background-color: #efef7f; }
+tr.invalid td { background-color: #ff9f9f; }
+
+tr.marked td, td.marked, tr.selected td, td.selected { background-color: #D3A1FF; }
+
+tr.green td, td.green { background-color: #9fef7f; }
+tr.yellow td, td.yellow { background-color: #efef7f; }
+tr.red td, td.red { background-color: #ff9f9f; }
+tr.blue td, td.blue { background-color: #A3D1FF; }
+
+tr:hover td { background-color: #A3D1FF !important; }
+
+td input {
+	width: auto !important;
+}
+
+tr.summary td {
+	background-color: #efdfaf;
+	font-weight: bold;
+}
+
+.ticket_event_extra table {width: 882px}
+
+
+/******** Table sort and filter **************/
+
+.profile_name, a
+{
+	white-space: nowrap;
+}
+
+a.remove_work_role
+{
+	position: absolute;
+	right: 4px;
+	top: 4px;
+}
+
+th span.filter_content
+{
+	display: block;
+	position: relative;
+	margin-right: 10px;
+}
+
+th input.filter_field
+{
+	display: block;
+/* 	width: 100%; */
+}
+
+th span.sort_table
+{
+	position: absolute;
+	right: -9px;
+	top: 1px;
+	background: none repeat scroll 0 0 rgba(255, 255, 255, 0.5);
+	border: medium none;
+	border-radius: 3px 3px 3px 3px;
+	box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.11) inset;
+	height: 21px;
+	overflow: hidden !important;
+	width: 42px;
+}
+
+tr.manage_table span.sort_asc img:first-child
+{
+	background: #DDEEFF;
+	box-shadow: 1px 0 1px rgba(0, 0, 0, 0.21);
+}
+
+tr.manage_table span.sort_desc img:last-child
+{
+	background: #DDEEFF;
+	box-shadow: 1px 0 1px rgba(0, 0, 0, 0.21);
+}
+
+tr.manage_table img:last-child
+{
+    border-left: 1px solid rgba(0, 0, 0, 0.21);
+}
+
+tr.manage_table img:first-child
+{
+}
+
+tr.manage_table img {
+	display: block;
+	float: left;
+	height: 16px;
+	margin: 0;
+	padding: 2px;
+	width: 16px;
+}
+
+thead input[type='text']
+{
+	border: 1px solid rgba(0, 0, 0, 0.6);
+}
+
+thead tr.manage_table th
+{
+/*	height: 0px;
+	overflow: hidden;*/
+}
+
+thead tr.modified th
+{
+	background: rgb(237, 220, 135);
+}
+
+thead tr.modified th input[type='text']
+{
+	border: 1px solid rgba(0,  0,  0, 0.6);
+}
+
+thead tr.manage_table th span.filter_content
+{
+	height: 0px;
+}
+
+thead tr.manage_table th *
+{
+	opacity: 0;
+}
+
+thead:hover tr.manage_table th span.filter_content,  thead tr.manage_table.modified th span.filter_content
+{
+	height: 22px;
+}
+
+thead:hover tr.manage_table th *, thead tr.manage_table.modified th *
+{
+	overflow: visible;
+	opacity: 1;
+}
+
+thead *
+{
+	transition-delay: 0.15s;
+	-moz-transition-delay: 0.15s;
+	-khtml-transition-delay: 0.15s;
+	-webkit-transition-delay: 0.15s; /* Safari- och Chrome-fix för att filtreringen inte skall bete sig underligt på :hover... */
+}
+
+tbody tr.hidden td
+{
+	height: 7px !important;
+	line-height: 0px !important;
+
+	margin: 0px !important;
+	padding: 0px !important;
+
+	color: transparent !important;
+}
+
+tbody tr.hidden td *
+{
+	opacity: 0 !important;
+	width: 0px !important;
+	height: 0px !important;
+	overflow: hidden !important;
+}
+
+/*********************************************/
