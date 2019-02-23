@@ -224,6 +224,9 @@
 					echo "<p class='warning'>Misslyckades registrera Lag {$safe_post->add->team_name}</p>";
 				}
 			}
+			if(!empty($safe_post->connect->action)) {
+				self::game_connect_placeholder($_POST['connect']['placeholder'], $_POST['connect']['team_id']);
+			}
 			echo <<<HTML_BLOCK
 				<style>
 					TABLE.puggan_table TD, TABLE.puggan_table TH
@@ -260,6 +263,7 @@
 			}
 			/** @var Team[] $teams */
 			$teams = $wpdb->get_results($query, OBJECT_K);
+			$team_count = count($teams);
 			$FIELD_ID = self::$GAME_TEAM_FIELD_ID;
 			$GAME_FROM_ID = self::$GAME_FROM_ID;
 			$query = <<<SQL_BLOCK
@@ -419,6 +423,179 @@
 							<span style='display: inline-block; width: 120px;'></span>
 							<input type='submit' name='add[action]' style='width: 200px;' value='Registrera lag' />
 						</label>
+					</fieldset>
+					<fieldset>
+						<legend>
+							<h2>Registrerade lag</h2>
+						</legend>
+						<p>
+							<a href='?page=game'>
+								{$team_count} Lag registrerade
+							</a>
+						</p>
+					</fieldset>
+					<fieldset>
+						<legend>
+							<h2>Lag Matchning - Auto</h2>
+						</legend>
+						<p>Automatiskt koppla vinnare och grupp-placeringar till nya matcher</p>
+						<table class='puggan_table'>
+							<colgroup>
+								<col />
+								<col />
+								<col />
+								<col />
+								<col />
+							</colgroup>
+							<thead>
+								<tr>
+									<th>Type</th>
+									<th>ID</th>
+									<th>Connected</th>
+									<th>Count</th>
+									<th>Status</th>
+								</tr>
+							</thead>
+							<tbody>
+			HTML_BLOCK;
+
+			$query = <<<SQL_BLOCK
+				SELECT
+			      game_team_autoselect.match_id * 2 + IF(game_team_autoselect.side = 'HOME', 0, 1) as dummy_id,
+					game_team_autoselect.auto_type,
+					game_team_autoselect.type_id,
+					COUNT(game_team_autoselect.match_id) AS auto_count,
+					COUNT(IF(game_team_autoselect.side = 'HOME' AND game_matches.home_team_id > 0, 1, NULL)) +
+					COUNT(IF(game_team_autoselect.side = 'AWAY' AND game_matches.away_team_id > 0, 1, NULL)) AS auto_connected
+				FROM game_team_autoselect
+					LEFT JOIN game_matches USING (match_id)
+				GROUP BY
+					game_team_autoselect.auto_type DESC,
+					game_team_autoselect.type_id
+			SQL_BLOCK;
+
+			/** @var \PHPDoc\DbResults\AutoCount[] $auto_rows */
+			$auto_rows = $wpdb->get_results($query, OBJECT_K);
+			foreach($auto_rows as $auto_row)
+			{
+				/** @var \PHPDoc\DbResults\AutoCount $safe_auto_row */
+				$safe_auto_row = self::html_encode_object($auto_row);
+				if($auto_row->auto_connected < $auto_row->auto_count)
+				{
+					$status = 'Pending';
+				}
+				else
+				{
+					$status = 'Done';
+				}
+
+				echo <<<HTML_BLOCK
+					<tr>
+						<td>{$safe_auto_row->auto_type}</td>
+						<td>{$safe_auto_row->type_id}</td>
+						<td>{$safe_auto_row->auto_connected}</td>
+						<td>{$safe_auto_row->auto_count}</td>
+						<td>{$status}</td>
+					</tr>
+				HTML_BLOCK;
+
+			}
+
+			echo <<<HTML_BLOCK
+							</tbody>
+						</table>
+					</fieldset>
+					<fieldset>
+						<legend>
+							<h2>Lag Matchning - Manuell</h2>
+						</legend>
+						<p>Manuellt koppla lag till placeholders</p>
+						<table class='puggan_table'>
+							<colgroup>
+								<col />
+								<col />
+								<col />
+							</colgroup>
+							<thead>
+								<tr>
+									<th>Placeholder</th>
+									<th>Count</th>
+									<th>Team</th>
+								</tr>
+							</thead>
+							<tbody>
+			HTML_BLOCK;
+
+			$query = <<<SQL_BLOCK
+				SELECT
+					team,
+					COUNT(*) as c
+				FROM (
+
+				   SELECT
+						match_id * 2 + 0 as dummy_id,
+						home_team_description as team
+				   FROM game_matches
+				   WHERE home_team_id IS NULL
+
+				   UNION
+
+				   SELECT
+						match_id * 2 + 1,
+						away_team_description
+				   FROM game_matches
+				   WHERE away_team_id IS NULL
+
+			   ) as l
+				GROUP BY team;
+			SQL_BLOCK;
+
+			$make_team_option = function($t) {
+				/** @var Team t */
+				/** @var Team $team */
+				$team = self::html_encode_object($t);
+				return "<option value='{$team->team_id}'>{$team->team_name}</option>";
+			};
+			$team_options_list = [];
+			foreach($teams as $team) {
+				$team_options_list["{$team->class_name} - {$team->group_name}"][$team->team_name] = $make_team_option($team);
+			}
+			ksort($team_options_list);
+			$team_options_groups = [];
+			foreach($team_options_list as $group => $team_option)
+			{
+				$team_options_groups[$group] = implode(PHP_EOL, $team_option);
+				$group_name = self::html_encode($group);
+				$team_options_groups[$group] = "<optgroup label='{$group_name}'>{$team_options_groups[$group]}</optgroup>";
+			}
+			$team_options = implode(PHP_EOL, $team_options_groups);
+
+
+			/** @var \PHPDoc\DbResults\TeamPlaceholderCount[] $auto_rows */
+			$placeholders = $wpdb->get_results($query, OBJECT_K);
+			foreach($placeholders as $placeholder)
+			{
+				/** @var \PHPDoc\DbResults\TeamPlaceholderCount $safe_auto_row */
+				$safe_placeholder = self::html_encode_object($placeholder);
+
+				echo <<<HTML_BLOCK
+					<tr>
+						<td>{$safe_placeholder->team}</td>
+						<td>{$safe_placeholder->c}</td>
+						<td>
+							<form method="post" action="#">
+								<input type="hidden" name="connect[placeholder]" value="{$safe_placeholder->team}" />
+								<select name="connect[team_id]"><option value=''>-- teams --</option>{$team_options}</select>
+								<input type="submit" name="connect[action]" value="Connect" />
+							</form>
+						</td>
+					</tr>
+				HTML_BLOCK;
+			}
+
+			echo <<<HTML_BLOCK
+							</tbody>
+						</table>
 					</fieldset>
 				</form>
 			HTML_BLOCK;
@@ -1242,5 +1419,50 @@
 					</fieldset>
 				</form>
 			HTML_BLOCK;
+		}
+
+		/**
+		 * @param string $placeholder
+		 * @param int $team_id
+		 */
+		public static function game_connect_placeholder($placeholder, $team_id) : void
+		{
+			global $wpdb;
+
+			$wpdb->update(
+				'game_matches',
+				[
+					'home_team_id' => $team_id,
+				],
+				[
+					'home_team_id' => NULL,
+					'home_team_description' => $placeholder,
+				],
+				[
+					'%d',
+				],
+				[
+					'%d',
+					'%s',
+				]
+			);
+
+			$wpdb->update(
+				'game_matches',
+				[
+					'away_team_id' => $team_id,
+				],
+				[
+					'away_team_id' => NULL,
+					'away_team_description' => $placeholder,
+				],
+				[
+					'%d',
+				],
+				[
+					'%d',
+					'%s',
+				]
+			);
 		}
 	}

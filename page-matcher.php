@@ -125,7 +125,7 @@ SQL_QUERY;
 // 			echo "<td>{$teams[$match->home_team_id]->class_name}</td>";
 			echo "</tr>";
 		}
-		
+
 		echo "</tbody>";
 		echo "</table>";
 	}

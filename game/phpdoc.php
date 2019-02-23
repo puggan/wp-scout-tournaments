@@ -127,6 +127,17 @@
 		 * @property string done
 		 */
 		class Result {}
+
+		/**
+		 * Class TeamAutoselect
+		 * @package PHPDoc\Models
+		 * @property string match_id
+		 * @property string side HOME, AWAY
+		 * @property string auto_type MATCH, GROUP
+		 * @property string type_id
+		 * @property string position
+		 */
+		class TeamAutoselect {}
 	}
 
 	namespace PHPDoc\DbResults
@@ -178,6 +189,13 @@
 		class GFClass {}
 
 		/**
+		 * Class GFTeamWithClass
+		 * @package PHPDoc\DbResults
+		 * @property string class_id
+		 */
+		class GFTeamWithClass extends GFTeam {}
+
+		/**
 		 * Class GroupsWithTeams
 		 * @package PHPDoc\DbResults
 		 * @property string class_name
@@ -204,4 +222,22 @@
 		 * @property string match_status
 		 */
 		class MatchWithExtra extends Match {}
+
+		/**
+		 * Class AutoCount
+		 * @package PHPDoc\DbResults
+		 * @property string auto_type
+		 * @property string type_id
+		 * @property string auto_count
+		 * @property string auto_connected
+		 */
+		class AutoCount {}
+
+		/**
+		 * Class TeamPlaceholderCount
+		 * @package PHPDoc\DbResults
+		 * @property string team
+		 * @property string c
+		 */
+		class TeamPlaceholderCount {}
 	}

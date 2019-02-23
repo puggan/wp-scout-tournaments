@@ -130,3 +130,14 @@ CREATE TABLE game_results
 	PRIMARY KEY (match_id),
 	KEY (referee_id)
 );
+
+CREATE TABLE game_team_autoselect
+(
+	match_id BIGINT UNSIGNED NOT NULL,
+	side ENUM('HOME', 'AWAY') NOT NULL,
+	auto_type ENUM('MATCH', 'GROUP'),
+	type_id BIGINT UNSIGNED NOT NULL,
+	position TINYINT UNSIGNED DEFAULT 1,
+	PRIMARY KEY(match_id, side),
+	KEY search_key (auto_type, type_id, match_id, side, position)
+);
