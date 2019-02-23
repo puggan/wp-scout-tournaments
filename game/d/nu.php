@@ -1,22 +1,10 @@
 <?php
-/**
- * The template for displaying all pages.
- *
- * This is the template that displays all pages by default.
- * Please note that this is the WordPress construct of pages
- * and that other 'pages' on your WordPress site will use a
- * different template.
- *
- * @package WordPress
- * @subpackage Twenty_Eleven
- * @since Twenty Eleven 1.0
- */
 
 	date_default_timezone_set("Europe/Stockholm");
 
-	require_once("/mnt/data/www/libs/database.new.php");
+	require_once __DIR__ . '/database.new.php';
 
-	$database = new database('ibn18', 'ibn18', '4a6rMJYyGQ88fuep');
+	$database = new database('ibn19', 'ibn19', '4a6rMJYyGQ88fuep');
 
 	$now = date("Y-m-d H:i:s");
 

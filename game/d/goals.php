@@ -1,8 +1,8 @@
 <?php
 
-	require_once("/mnt/data/www/libs/database.new.php");
+	require_once __DIR__ . '/database.new.php';
 
-	$database = new database('ibn18', 'ibn18', '4a6rMJYyGQ88fuep');
+	$database = new database('ibn19', 'ibn19', '4a6rMJYyGQ88fuep');
 
 	$fetch_query = <<<SQL_BLOCK
 SELECT
