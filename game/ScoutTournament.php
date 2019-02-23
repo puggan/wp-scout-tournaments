@@ -237,28 +237,8 @@
 		public static function game_page() : void
 		{
 			global $wpdb;
-			echo <<<HTML_BLOCK
-				<style>
-					TABLE.puggan_table TD, TABLE.puggan_table TH
-					{
-						padding: 3px 8px;
-						border: solid black 1px;
-					}
-					TABLE.puggan_table
-					{
-						border: solid gray 2px;
-					}
-				</style>
-				<h2>Klasser</h2>
-				<table class='puggan_table'>
-					<thead>
-						<tr>
-							<th>Klass</th>
-							<th>Antal Lag</th>
-						</tr>
-					</thead>
-					<tbody>
-			HTML_BLOCK;
+			$html_parts = (object) [];
+
 			$query = <<<'SQL_BLOCK'
 				SELECT
 					game_classes.*,
@@ -271,7 +251,7 @@
 			$classes = $wpdb->get_results($query, OBJECT_K);
 			if(!$classes)
 			{
-				echo <<<HTML_BLOCK
+				$html_parts->classes_tbody = <<<HTML_BLOCK
 					<tr>
 						<td colspan='2'>Inga klasser</td>
 					</tr>
@@ -279,11 +259,12 @@
 			}
 			else
 			{
+				$html_parts->classes_tbody = '';
 				foreach($classes as $class)
 				{
 					/** @var ClassCount $safe_class */
 					$safe_class = self::html_encode_object($class);
-					echo <<<HTML_BLOCK
+					$html_parts->classes_tbody .= <<<HTML_BLOCK
 						<tr>
 							<td>{$safe_class->class_name}</td>
 							<td>{$safe_class->teams}</td>
@@ -291,20 +272,6 @@
 					HTML_BLOCK;
 				}
 			}
-			echo <<<HTML_BLOCK
-					</tbody>
-				</table>
-				<h2>Lag</h2>
-				<table class='puggan_table'>
-					<thead>
-						<tr>
-							<th>Lagnamn</th>
-							<th>Klass</th>
-							<th>Grupp</th>
-						</tr>
-					</thead>
-					<tbody>
-			HTML_BLOCK;
 			$query = <<<'SQL_BLOCK'
 				SELECT
 					game_teams.team_id,
@@ -323,7 +290,7 @@
 			$teams = $wpdb->get_results($query, OBJECT_K);
 			if(!$teams)
 			{
-				echo <<<HTML_BLOCK
+				$html_parts->team_taable_content = <<<HTML_BLOCK
 					<tr>
 						<td colspan='3'>Inga lag</td>
 					</tr>
@@ -331,11 +298,12 @@
 			}
 			else
 			{
+				$html_parts->team_tbody = '';
 				foreach($teams as $team)
 				{
 					/** @var Team $teams */
 					$safe_team = self::html_encode_object($team);
-					echo <<<HTML_BLOCK
+					$html_parts->team_tbody .= <<<HTML_BLOCK
 						<tr>
 							<td><a href='?page=game_teams&amp;team_id={$safe_team->team_id}'>{$safe_team->team_name}</a></td>
 							<td>{$safe_team->class_name}</td>
@@ -344,7 +312,44 @@
 					HTML_BLOCK;
 				}
 			}
+
 			echo <<<HTML_BLOCK
+				<style>
+					TABLE.puggan_table TD, TABLE.puggan_table TH
+					{
+						padding: 3px 8px;
+						border: solid black 1px;
+					}
+					TABLE.puggan_table
+					{
+						border: solid gray 2px;
+					}
+				</style>
+
+				<h2>Klasser</h2>
+				<table class='puggan_table'>
+					<thead>
+						<tr>
+							<th>Klass</th>
+							<th>Antal Lag</th>
+						</tr>
+					</thead>
+					<tbody>
+						{$html_parts->classes_tbody}
+					</tbody>
+				</table>
+
+				<h2>Lag</h2>
+				<table class='puggan_table'>
+					<thead>
+						<tr>
+							<th>Lagnamn</th>
+							<th>Klass</th>
+							<th>Grupp</th>
+						</tr>
+					</thead>
+					<tbody>
+						{$html_parts->team_tbody}
 					</tbody>
 				</table>
 			HTML_BLOCK;
