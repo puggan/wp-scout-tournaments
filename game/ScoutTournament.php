@@ -782,6 +782,8 @@
 		{
 			global $wpdb;
 			$safe_post = self::html_encode_object($_POST);
+			$html_parts = (object) [];
+
 			if(!empty($safe_post->add->action))
 			{
 				if(self::game_add_group($_POST['add']))
@@ -860,6 +862,68 @@
 					echo "<p class='warning'>Misslyckades koppla '{$safe_team->group_name}' till grupp '{$safe_group->group_name}'</p>";
 				}
 			}
+
+			if($groups)
+			{
+				$html_parts->groups_tbody = '';
+				foreach($groups as $group)
+				{
+					/** @var GroupWithTeams $safe_group */
+					$safe_group = self::html_encode_object($group);
+					$html_parts->groups_tbody .= <<<HTML_BLOCK
+						<tr>
+							<td>{$safe_group->group_name}</td>
+							<td>{$safe_group->class_name}</td>
+							<td>{$safe_group->team_count}</td>
+							<td>{$safe_group->teams}</td>
+						</tr>
+					HTML_BLOCK;
+				}
+			}
+			else
+			{
+				$html_parts->groups_tbody = <<<HTML_BLOCK
+					<tr>
+						<td colspan='4'>Inga grupper registrerade</td>
+					</tr>
+				HTML_BLOCK;
+			}
+			$html_parts->class_options = '';
+			foreach($classes as $class_id => $class)
+			{
+				/** @var GameClass $safe_class */
+				$safe_class = self::html_encode_object($class);
+				$html_parts->class_options .= "<option value='{$class_id}'>{$safe_class->class_name}</option>";
+			}
+			$html_parts->team_options = '';
+			foreach($teams as $team_id => $team)
+			{
+				/** @var Team $safe_team */
+				$safe_team = self::html_encode_object($team);
+				if($team->group_name)
+				{
+					$html_parts->team_options .= "<option value='{$team_id}'>{$safe_team->team_name} - {$safe_team->group_name} - {$safe_team->class_name}</option>";
+				}
+				else
+				{
+					$html_parts->team_options .= "<option value='{$team_id}'>{$safe_team->team_name} - ? - {$safe_team->class_name}</option>";
+				}
+			}
+			$html_parts->group_options = '';
+			foreach($groups as $group_id => $group)
+			{
+				/** @var GroupWithTeams $safe_group */
+				$safe_group = self::html_encode_object($group);
+				if($group_id === +($_POST['connect']['group_id'] ?? 0))
+				{
+					$html_parts->group_options .= "<option value='{$group_id}' selected='selected'>{$safe_group->group_name}</option>";
+				}
+				else
+				{
+					$html_parts->group_options .= "<option value='{$group_id}'>{$safe_group->group_name}</option>";
+				}
+			}
+
 			echo <<<HTML_BLOCK
 				<style>
 					TABLE.puggan_table TD, TABLE.puggan_table TH
@@ -872,6 +936,7 @@
 						border: solid gray 2px;
 					}
 				</style>
+
 				<h2>Grupper</h2>
 				<table class='puggan_table'>
 					<thead>
@@ -882,34 +947,10 @@
 						</tr>
 					</thead>
 					<tbody>
-			HTML_BLOCK;
-			if($groups)
-			{
-				foreach($groups as $group)
-				{
-					/** @var GroupWithTeams $safe_group */
-					$safe_group = self::html_encode_object($group);
-					echo <<<HTML_BLOCK
-						<tr>
-							<td>{$safe_group->group_name}</td>
-							<td>{$safe_group->class_name}</td>
-							<td>{$safe_group->team_count}</td>
-							<td>{$safe_group->teams}</td>
-						</tr>
-					HTML_BLOCK;
-				}
-			}
-			else
-			{
-				echo <<<HTML_BLOCK
-					<tr>
-						<td colspan='4'>Inga grupper registrerade</td>
-					</tr>
-				HTML_BLOCK;
-			}
-			echo <<<HTML_BLOCK
+						{$html_parts->groups_tbody}
 					</tbody>
 				</table>
+
 				<form action='#' method='post'>
 					<fieldset>
 						<legend>
@@ -923,14 +964,7 @@
 							<span style='display: inline-block; width: 120px;'>Klass:</span>
 							<select name='add[class_id]' style='width: 200px;'>
 								<option value=''>V&auml;lj klass</option>
-			HTML_BLOCK;
-			foreach($classes as $class_id => $class)
-			{
-				/** @var GameClass $safe_class */
-				$safe_class = self::html_encode_object($class);
-				echo "<option value='{$class_id}'>{$safe_class->class_name}</option>";
-			}
-			echo <<<HTML_BLOCK
+								{$html_parts->class_options}
 							</select>
 						</label><br />
 						<label>
@@ -939,6 +973,7 @@
 						</label>
 					</fieldset>
 				</form>
+
 				<form action='#' method='post'>
 					<fieldset>
 						<legend>
@@ -948,42 +983,14 @@
 							<span style='display: inline-block; width: 120px;'>Klass:</span>
 							<select name='connect[team_id]' style='width: 200px;' >
 								<option value=''>V&auml;lj lag</option>
-			HTML_BLOCK;
-			foreach($teams as $team_id => $team)
-			{
-				/** @var Team $safe_team */
-				$safe_team = self::html_encode_object($team);
-				if($team->group_name)
-				{
-					echo "<option value='{$team_id}'>{$safe_team->team_name} - {$safe_team->group_name} - {$safe_team->class_name}</option>";
-				}
-				else
-				{
-					echo "<option value='{$team_id}'>{$safe_team->team_name} - ? - {$safe_team->class_name}</option>";
-				}
-			}
-			echo <<<HTML_BLOCK
-					</select>
-				</label><br />
-				<label>
-					<span style='display: inline-block; width: 120px;'>Grupp:</span>
-					<select name='connect[group_id]' style='width: 200px;' >
-						<option value=''>V&auml;lj grupp</option>
-			HTML_BLOCK;
-			foreach($groups as $group_id => $group)
-			{
-				/** @var GroupWithTeams $safe_group */
-				$safe_group = self::html_encode_object($group);
-				if($group_id === +($_POST['connect']['group_id'] ?? 0))
-				{
-					echo "<option value='{$group_id}' selected='selected'>{$safe_group->group_name}</option>";
-				}
-				else
-				{
-					echo "<option value='{$group_id}'>{$safe_group->group_name}</option>";
-				}
-			}
-			echo <<<HTML_BLOCK
+								{$html_parts->team_options}
+							</select>
+						</label><br />
+						<label>
+							<span style='display: inline-block; width: 120px;'>Grupp:</span>
+							<select name='connect[group_id]' style='width: 200px;' >
+								<option value=''>V&auml;lj grupp</option>
+								{$html_parts->group_options}
 							</select>
 						</label><br />
 						<label>
