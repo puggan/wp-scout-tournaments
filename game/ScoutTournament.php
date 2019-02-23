@@ -362,6 +362,8 @@
 		{
 			global $wpdb;
 			$safe_post = self::html_encode_object($_POST);
+			$html_parts = (object) [];
+
 			if(isset($safe_post->bulk_button))
 			{
 				foreach($safe_post->bulk as $row_index => $row)
@@ -393,19 +395,6 @@
 			if(!empty($safe_post->connect->action)) {
 				self::game_connect_placeholder($_POST['connect']['placeholder'], $_POST['connect']['team_id']);
 			}
-			echo <<<HTML_BLOCK
-				<style>
-					TABLE.puggan_table TD, TABLE.puggan_table TH
-					{
-						padding: 3px 8px;
-						border: solid black 1px;
-					}
-					TABLE.puggan_table
-					{
-						border: solid gray 2px;
-					}
-				</style>
-			HTML_BLOCK;
 			/** @var GameClass[] $classes */
 			$classes = $wpdb->get_results('SELECT game_classes.* FROM game_classes', OBJECT_K);
 			$query = <<<'SQL_BLOCK'
@@ -493,7 +482,35 @@
 				{
 					$missing_teams[$lead_id]->class_id = (int) $team_classes_rows[$team->lead_id]->class_name;
 				}
-				$js = <<<JS_BLOCK
+				$html_parts->missing_teams_tbody = '';
+				foreach($missing_teams as $lead_id => $team)
+				{
+					$team_class = $classes[$team->class_id];
+					/** @var GFTeam $safe_team */
+					$safe_team = self::html_encode_object($team);
+					/** @var GameClass $safe_team_class */
+					$safe_team_class = self::html_encode_object($team_class);
+					$html_parts->missing_teams_tbody .= <<<HTML_BLOCK
+						<tr>
+							<td><input type='checkbox' name='bulk[{$lead_id}][action]' value='add' /></td>
+							<td><input type='text' readonly='readonly' name='bulk[{$lead_id}][team_name]' value='{$safe_team->team_name}' /></td>
+							<td><input type='hidden' name='bulk[{$lead_id}][class_id]' value='{$team->class_id}' />{$safe_team_class->class_name}</td>
+						</tr>
+					HTML_BLOCK;
+				}
+			}
+			else
+			{
+				$html_parts->missing_teams_tbody = <<<HTML_BLOCK
+					<tr>
+						<td colspan="3">
+							<p class='notice'>Alla anmälda lag är registrerade</p>
+						</td>
+					</tr>
+				HTML_BLOCK;
+			}
+
+			$js = <<<JS_BLOCK
 					let e = this;
 					for(let t = 0; t < 20; t++)
 					{
@@ -518,112 +535,16 @@
 						}
 					}
 				JS_BLOCK;
-				$js_mini = self::html_encode(preg_replace("/[ \t\r\n]+/", ' ', $js));
-				echo <<<HTML_BLOCK
-					<h2>Anmälda, oregistrerade lag</h2>
-					<form action='#' method='post'>
-						<table class='puggan_table'>
-							<thead>
-								<tr>
-									<th><input type='checkbox' onchange='{$js_mini}' /></th>
-									<th>Lagnamn</th>
-									<th>Klass</th>
-								</tr>
-							</thead>
-							<tbody>
-				HTML_BLOCK;
-				foreach($missing_teams as $lead_id => $team)
-				{
-					$team_class = $classes[$team->class_id];
-					/** @var GFTeam $safe_team */
-					$safe_team = self::html_encode_object($team);
-					/** @var GameClass $safe_team_class */
-					$safe_team_class = self::html_encode_object($team_class);
-					echo <<<HTML_TAG
-						<tr>
-							<td><input type='checkbox' name='bulk[{$lead_id}][action]' value='add' /></td>
-							<td><input type='text' readonly='readonly' name='bulk[{$lead_id}][team_name]' value='{$safe_team->team_name}' /></td>
-							<td><input type='hidden' name='bulk[{$lead_id}][class_id]' value='{$team->class_id}' />{$safe_team_class->class_name}</td>
-						</tr>
-					HTML_TAG;
-				}
-				echo <<<HTML_BLOCK
-							</tbody>
-						</table>
-						<label>
-							<span></span>
-							<input type='submit' name='bulk_button' value='Lägg till markerade lag' />
-						</label>
-					</form>
-				HTML_BLOCK;
-			}
-			else
-			{
-				echo "<p class='notice'>Alla anmälda lag är registrerade</p>";
-			}
-			echo <<<HTML_BLOCK
-				<form action='#' method='post'>
-					<fieldset>
-						<legend>
-							<h2>Registrera Lag</h2>
-						</legend>
-						<label>
-							<span style='display: inline-block; width: 120px;'>Lagnamn:</span>
-							<input name='add[team_name]' style='width: 200px;' />
-						</label><br />
-						<label>
-							<span style='display: inline-block; width: 120px;'>Klass:</span>
-							<select name='add[class_id]' style='width: 200px;' >
-								<option value=''>V&auml;lj klass</option>
-			HTML_BLOCK;
+			$html_parts->master_checkbox_js = self::html_encode(preg_replace("/[ \t\r\n]+/", ' ', $js));
+
+
+			$html_parts->class_options = '';
 			foreach($classes as $class_id => $class)
 			{
 				/** @var GameClass $safe_class */
 				$safe_class = self::html_encode_object($class);
-				echo "<option value='{$class_id}'>{$safe_class->class_name}</option>";
+				$html_parts->class_options .= "<option value='{$class_id}'>{$safe_class->class_name}</option>";
 			}
-			echo <<<HTML_BLOCK
-							</select>
-						</label><br />
-						<label>
-							<span style='display: inline-block; width: 120px;'></span>
-							<input type='submit' name='add[action]' style='width: 200px;' value='Registrera lag' />
-						</label>
-					</fieldset>
-					<fieldset>
-						<legend>
-							<h2>Registrerade lag</h2>
-						</legend>
-						<p>
-							<a href='?page=game'>
-								{$team_count} Lag registrerade
-							</a>
-						</p>
-					</fieldset>
-					<fieldset>
-						<legend>
-							<h2>Lag Matchning - Auto</h2>
-						</legend>
-						<p>Automatiskt koppla vinnare och grupp-placeringar till nya matcher</p>
-						<table class='puggan_table'>
-							<colgroup>
-								<col />
-								<col />
-								<col />
-								<col />
-								<col />
-							</colgroup>
-							<thead>
-								<tr>
-									<th>Type</th>
-									<th>ID</th>
-									<th>Connected</th>
-									<th>Count</th>
-									<th>Status</th>
-								</tr>
-							</thead>
-							<tbody>
-			HTML_BLOCK;
 
 			$query = <<<SQL_BLOCK
 				SELECT
@@ -642,6 +563,7 @@
 
 			/** @var AutoCount[] $auto_rows */
 			$auto_rows = $wpdb->get_results($query, OBJECT_K);
+			$html_parts->auto_connect_tbody = '';
 			foreach($auto_rows as $auto_row)
 			{
 				/** @var AutoCount $safe_auto_row */
@@ -655,7 +577,7 @@
 					$status = 'Done';
 				}
 
-				echo <<<HTML_BLOCK
+				$html_parts->auto_connect_tbody .= <<<HTML_BLOCK
 					<tr>
 						<td>{$safe_auto_row->auto_type}</td>
 						<td>{$safe_auto_row->type_id}</td>
@@ -666,31 +588,6 @@
 				HTML_BLOCK;
 
 			}
-
-			echo <<<HTML_BLOCK
-							</tbody>
-						</table>
-					</fieldset>
-					<fieldset>
-						<legend>
-							<h2>Lag Matchning - Manuell</h2>
-						</legend>
-						<p>Manuellt koppla lag till placeholders</p>
-						<table class='puggan_table'>
-							<colgroup>
-								<col />
-								<col />
-								<col />
-							</colgroup>
-							<thead>
-								<tr>
-									<th>Placeholder</th>
-									<th>Count</th>
-									<th>Team</th>
-								</tr>
-							</thead>
-							<tbody>
-			HTML_BLOCK;
 
 			$query = <<<SQL_BLOCK
 				SELECT
@@ -740,12 +637,13 @@
 
 			/** @var TeamPlaceholderCount[] $placeholders */
 			$placeholders = $wpdb->get_results($query, OBJECT_K);
+			$html_parts->placeholder_tbody = '';
 			foreach($placeholders as $placeholder)
 			{
 				/** @var TeamPlaceholderCount $safe_placeholder */
 				$safe_placeholder = self::html_encode_object($placeholder);
 
-				echo <<<HTML_BLOCK
+				$html_parts->placeholder_tbody .= <<<HTML_BLOCK
 					<tr>
 						<td>{$safe_placeholder->team}</td>
 						<td>{$safe_placeholder->c}</td>
@@ -761,6 +659,115 @@
 			}
 
 			echo <<<HTML_BLOCK
+				<style>
+					TABLE.puggan_table TD, TABLE.puggan_table TH
+					{
+						padding: 3px 8px;
+						border: solid black 1px;
+					}
+					TABLE.puggan_table
+					{
+						border: solid gray 2px;
+					}
+				</style>
+
+				<h2>Anmälda, oregistrerade lag</h2>
+				<form action='#' method='post'>
+					<table class='puggan_table'>
+						<thead>
+							<tr>
+								<th><input type='checkbox' onchange='{$html_parts->master_checkbox_js}' /></th>
+								<th>Lagnamn</th>
+								<th>Klass</th>
+							</tr>
+						</thead>
+						<tbody>
+							{$html_parts->missing_teams_tbody}
+						</tbody>
+					</table>
+					<label>
+						<span></span>
+						<input type='submit' name='bulk_button' value='Lägg till markerade lag' />
+					</label>
+				</form>
+				<form action='#' method='post'>
+					<fieldset>
+						<legend>
+							<h2>Registrera Lag</h2>
+						</legend>
+						<label>
+							<span style='display: inline-block; width: 120px;'>Lagnamn:</span>
+							<input name='add[team_name]' style='width: 200px;' />
+						</label><br />
+						<label>
+							<span style='display: inline-block; width: 120px;'>Klass:</span>
+							<select name='add[class_id]' style='width: 200px;' >
+								<option value=''>V&auml;lj klass</option>
+								{$html_parts->class_options}
+							</select>
+						</label><br />
+						<label>
+							<span style='display: inline-block; width: 120px;'></span>
+							<input type='submit' name='add[action]' style='width: 200px;' value='Registrera lag' />
+						</label>
+					</fieldset>
+					<fieldset>
+						<legend>
+							<h2>Registrerade lag</h2>
+						</legend>
+						<p>
+							<a href='?page=game'>
+								{$team_count} Lag registrerade
+							</a>
+						</p>
+					</fieldset>
+					<fieldset>
+						<legend>
+							<h2>Lag Matchning - Auto</h2>
+						</legend>
+						<p>Automatiskt koppla vinnare och grupp-placeringar till nya matcher</p>
+						<table class='puggan_table'>
+							<colgroup>
+								<col />
+								<col />
+								<col />
+								<col />
+								<col />
+							</colgroup>
+							<thead>
+								<tr>
+									<th>Type</th>
+									<th>ID</th>
+									<th>Connected</th>
+									<th>Count</th>
+									<th>Status</th>
+								</tr>
+							</thead>
+							<tbody>
+								{$html_parts->auto_connect_tbody}
+							</tbody>
+						</table>
+					</fieldset>
+					<fieldset>
+						<legend>
+							<h2>Lag Matchning - Manuell</h2>
+						</legend>
+						<p>Manuellt koppla lag till placeholders</p>
+						<table class='puggan_table'>
+							<colgroup>
+								<col />
+								<col />
+								<col />
+							</colgroup>
+							<thead>
+								<tr>
+									<th>Placeholder</th>
+									<th>Count</th>
+									<th>Team</th>
+								</tr>
+							</thead>
+							<tbody>
+								{$html_parts->placeholder_tbody}
 							</tbody>
 						</table>
 					</fieldset>
