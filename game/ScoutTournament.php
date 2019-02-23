@@ -1256,6 +1256,8 @@
 		{
 			global $wpdb;
 			$safe_post = self::html_encode_object($_POST);
+			$html_parts = (object) [];
+
 			if(empty($_GET['id']))
 			{
 				throw new RuntimeException('No id');
@@ -1312,6 +1314,27 @@
 			SQL_BLOCK;
 			/** @var Team[] $teams */
 			$teams = $wpdb->get_results($query, OBJECT_K);
+
+			$html_parts->team_options = '';
+			foreach($teams as $team)
+			{
+				/** @var Team $safe_team */
+				$safe_team = self::html_encode_object($team);
+				$html_parts->team_options .= "<option value='{$safe_team->team_id}'>{$safe_team->team_name}</option>";
+			}
+
+			$html_parts->team_options_home = str_replace(
+				"<option value='{$match->home_team_id}'>",
+				"<option value='{$match->home_team_id}' selected='selected'>",
+				$html_parts->team_options,
+			);
+
+			$html_parts->team_options_away = str_replace(
+				"<option value='{$match->away_team_id}'>",
+				"<option value='{$match->away_team_id}' selected='selected'>",
+				$html_parts->team_options,
+			);
+
 			echo <<<HTML_BLOCK
 				<form action='#' method='post'>
 					<label>
@@ -1322,45 +1345,17 @@
 						<span>Home: </span>
 						<select name='home_team_id'>
 							<option value=''>-- no team --</option>
-			HTML_BLOCK;
-			foreach($teams as $team)
-			{
-				/** @var Team $safe_team */
-				$safe_team = self::html_encode_object($team);
-				if($match->home_team_id === $team->team_id)
-				{
-					echo "<option value='{$safe_team->team_id}' selected='selected'>{$safe_team->team_name}</option>";
-				}
-				else
-				{
-					echo "<option value='{$safe_team->team_id}'>{$safe_team->team_name}</option>";
-				}
-			}
-			echo <<<HTML_BLOCK
-					</select>
-				</label>
-				<label>
-					<input name="home_team_description" value="{$safe_match->home_team_description}" />
-				</label><br />
-				<label>
-					<span>Away: </span>
-					<select name='away_team_id'>
-						<option value=''>-- no team --</option>
-			HTML_BLOCK;
-			foreach($teams as $team)
-			{
-				/** @var Team $safe_team */
-				$safe_team = self::html_encode_object($team);
-				if($match->away_team_id === $team->team_id)
-				{
-					echo "<option value='{$safe_team->team_id}' selected='selected'>{$safe_team->team_name}</option>";
-				}
-				else
-				{
-					echo "<option value='{$safe_team->team_id}'>{$safe_team->team_name}</option>";
-				}
-			}
-			echo <<<HTML_BLOCK
+							{$html_parts->team_options_home}
+						</select>
+					</label>
+					<label>
+						<input name="home_team_description" value="{$safe_match->home_team_description}" />
+					</label><br />
+					<label>
+						<span>Away: </span>
+						<select name='away_team_id'>
+							<option value=''>-- no team --</option>
+							{$html_parts->team_options_away}
 						</select>
 					</label>
 					<label>
