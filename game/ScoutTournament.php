@@ -1384,6 +1384,8 @@
 		{
 			global $wpdb;
 			$safe_post = self::html_encode_object($_POST);
+			$html_parts = (object) [];
+
 			if(!empty($safe_post->add->action))
 			{
 				$result = $wpdb->insert(
@@ -1417,6 +1419,31 @@
 			SQL_BLOCK;
 			/** @var RefereeCount[] $referees */
 			$referees = $wpdb->get_results($query, OBJECT_K);
+			if($referees)
+			{
+				$html_parts->referee_tbody = '';
+				foreach($referees as $referee)
+				{
+					/** @var RefereeCount $safe_referee */
+					$safe_referee = self::html_encode_object($referee);
+					$html_parts->referee_tbody .= <<<HTML_BLOCK
+						<tr>
+							<td>{$safe_referee->referee_code}</td>
+							<td>{$safe_referee->referee_name}</td>
+							<td>{$safe_referee->c}</td>
+						</tr>
+					HTML_BLOCK;
+				}
+			}
+			else
+			{
+				$html_parts->referee_tbody = <<<'HTML_BLOCK'
+					<tr>
+						<td colspan='2'>Inga dommare</td>
+					</tr>
+				HTML_BLOCK;
+			}
+
 			echo <<<HTML_BLOCK
 				<style>
 					TABLE.puggan_table TD, TABLE.puggan_table TH
@@ -1437,33 +1464,9 @@
 							<th>Namn</th>
 							<th>Matcher</th>
 						</tr>
-				</thead>
-				<tbody>
-			HTML_BLOCK;
-			if($referees)
-			{
-				foreach($referees as $referee)
-				{
-					/** @var RefereeCount $safe_referee */
-					$safe_referee = self::html_encode_object($referee);
-					echo <<<HTML_BLOCK
-						<tr>
-							<td>{$safe_referee->referee_code}</td>
-							<td>{$safe_referee->referee_name}</td>
-							<td>{$safe_referee->c}</td>
-						</tr>
-					HTML_BLOCK;
-				}
-			}
-			else
-			{
-				echo <<<'HTML_BLOCK'
-					<tr>
-						<td colspan='2'>Inga dommare</td>
-					</tr>
-				HTML_BLOCK;
-			}
-			echo <<<HTML_BLOCK
+					</thead>
+					<tbody>
+						{$html_parts->referee_tbody}
 					</tbody>
 				</table>
 				<form action='#' method='post'>
