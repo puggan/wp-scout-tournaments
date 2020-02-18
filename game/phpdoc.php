@@ -168,6 +168,7 @@
 		 * @property string team_name
 		 * @property string class_name
 		 * @property string group_name
+		 * @property string attendance_status
 		 */
 		class Team {}
 
@@ -219,6 +220,8 @@
 		 * @property string match_time
 		 * @property string field_name
 		 * @property string referee_name
+		 * @property string home_goals
+		 * @property string away_goals
 		 * @property string match_status
 		 */
 		class MatchWithExtra extends Match {}

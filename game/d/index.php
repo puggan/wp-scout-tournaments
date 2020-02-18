@@ -24,11 +24,11 @@
 		echo <<<HTML_BLOCK
 			<html>
 				<head>
-					<title>IBN19 - Dommare</title>
+					<title>IBN19 - Domare</title>
 				</head>
 				<body>
 					<div style='width: 800px; margin: auto;'>
-						<h1>IBN19 - Dommare</h1>
+						<h1>IBN19 - Domare</h1>
 						<form>
 							<fieldset>
 								<label>
@@ -88,7 +88,7 @@
 	echo <<<HTML_BLOCK
 <html>
 	<head>
-		<title>IBN19 - Dommare - {$referee_name}</title>
+		<title>IBN19 - Domare - {$referee_name}</title>
 
 		<script src="/d/js/onload_manager.js"></script>
 		<script src="/d/js/misc.js"></script>
@@ -137,7 +137,7 @@
 	<body>
 		<div style='width: 800px; margin: auto;'>
 			{$messages_html}
-			<h1>IBN19 - Dommare - {$user->referee_name}</h1>
+			<h1>IBN19 - Domare - {$user->referee_name}</h1>
 HTML_BLOCK;
 
 	if(isset($_GET['m']))
@@ -145,14 +145,14 @@ HTML_BLOCK;
 		$match_id = (int) $_GET['m'];
 		$fetch_query = <<<SQL_BLOCK
 SELECT
-	home_team.team_name AS home_team_name,
-	away_team.team_name AS away_team_name,
+	COALESCE(home_team.team_name, home_team_description) AS home_team_name,
+	COALESCE(away_team.team_name, away_team_description) AS away_team_name,
 	game_results.*,
 	game_match_referees.*,
 	game_match_time.*
 FROM game_matches
-	INNER JOIN game_teams AS home_team ON (home_team.team_id = game_matches.home_team_id)
-	INNER JOIN game_teams AS away_team ON (away_team.team_id = game_matches.away_team_id)
+	LEFT JOIN game_teams AS home_team ON (home_team.team_id = game_matches.home_team_id)
+	LEFT JOIN game_teams AS away_team ON (away_team.team_id = game_matches.away_team_id)
 	LEFT JOIN game_match_time USING (match_id)
 	LEFT JOIN game_match_referees USING (match_id)
 	LEFT JOIN game_results USING (match_id)
@@ -236,7 +236,7 @@ SQL_BLOCK;
 					exit();
 				}
 
-				$match = $database->get($fetch_query);
+				$match = $database->object($fetch_query);
 			}
 		}
 
@@ -260,20 +260,20 @@ SQL_BLOCK;
 			case 'STARTED':
 			{
 				echo <<<HTML_BLOCK
-			<h2>Match {$match->match_id} - {$match["{$side_1}_team_name"]} vs {$match["{$side_2}_team_name"]}</h2>
+			<h2>Match {$match->match_id} - {$match->{"{$side_1}_team_name"}} vs {$match->{"{$side_2}_team_name"}}</h2>
 			<form action="{$form_url}" method='post'>
 				<table>
 					<thead class='match'>
 						<tr>
-							<th colspan='2'>{$match["{$side_1}_team_name"]}</th>
+							<th colspan='2' style='font-size: 2em;'>{$match->{"{$side_1}_team_name"}}</th>
 							<th> vs </th>
-							<th colspan='2'>{$match["{$side_2}_team_name"]}</th>
+							<th colspan='2' style='font-size: 2em;'>{$match->{"{$side_2}_team_name"}}</th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr>
 							<td rowspan='2'>
-								<input class='goals' id='{$side_1}_goals' name='{$side_1}_goals' value='{$match["{$side_1}_goals"]}' />
+								<input class='goals' id='{$side_1}_goals' name='{$side_1}_goals' value='{$match->{"{$side_1}_goals"}}' />
 							</td>
 							<td>
 								<input type='submit' name='{$side_1}_inc' class='inc' value='+' />
@@ -282,7 +282,7 @@ SQL_BLOCK;
 								vs
 							</td>
 							<td rowspan='2'>
-								<input class='goals' id='{$side_2}_goals' name='{$side_2}_goals' value='{$match["{$side_2}_goals"]}' />
+								<input class='goals' id='{$side_2}_goals' name='{$side_2}_goals' value='{$match->{"{$side_2}_goals"}}' />
 							</td>
 							<td>
 								<input type='submit' name='{$side_2}_inc' class='inc' value='+' />
@@ -309,8 +309,8 @@ HTML_BLOCK;
 			case 'PLAYED':
 			{
 				echo <<<HTML_BLOCK
-			<h2>Match {$match->match_id} - {$match["{$side_1}_team_name"]} vs {$match["{$side_2}_team_name"]}</h2>
-			<p>Matchen mellan {$match["{$side_1}_team_name"]} och {$match["{$side_2}_team_name"]} slutade {$match["{$side_1}_goals"]} - {$match["{$side_2}_goals"]}</p>
+			<h2>Match {$match->match_id} - {$match->{$side_1."_team_name"}} vs {$match->{"{$side_2}_team_name"}}</h2>
+			<p>Matchen mellan {$match->{"{$side_1}_team_name"}} och {$match->{"{$side_2}_team_name"}} slutade {$match->{"{$side_1}_goals"}} - {$match->{"{$side_2}_goals"}}</p>
 HTML_BLOCK;
 				break;
 			}
@@ -318,8 +318,8 @@ HTML_BLOCK;
 			default:
 			{
 				echo <<<HTML_BLOCK
-			<h2>Match {$match->match_id} - {$match["{$side_1}_team_name"]} vs {$match["{$side_2}_team_name"]}</h2>
-			<p>Matchen mellan {$match["{$side_1}_team_name"]} och {$match["{$side_2}_team_name"]} ska börja {$match->match_time}</p>
+			<h2>Match {$match->match_id} - {$match->{$side_1."_team_name"}} vs {$match->{"{$side_2}_team_name"}}</h2>
+			<p>Matchen mellan {$match->{"{$side_1}_team_name"}} och {$match->{"{$side_2}_team_name"}} ska börja {$match->match_time}</p>
 			<form action="{$form_url}" method='post'>
 				<input type='submit' name='start' value='Starta matchen' />
 			</form>
@@ -332,23 +332,24 @@ HTML_BLOCK;
 	{
 		$query = <<<SQL_BLOCK
 SELECT 
-	home_team.team_name AS home_team_name, 
-	away_team.team_name AS away_team_name, 
+	COALESCE(home_team.team_name, game_matches.home_team_description) AS home_team_name, 
+	COALESCE(away_team.team_name, game_matches.away_team_description) AS away_team_name, 
 	game_match_time.*, 
 	game_match_referees.* 
 FROM game_match_referees 
 	INNER JOIN game_matches USING (match_id) 
-	INNER JOIN game_teams AS home_team ON (home_team.team_id = game_matches.home_team_id) 
-	INNER JOIN game_teams AS away_team ON (away_team.team_id = game_matches.away_team_id) 
+	LEFT JOIN game_teams AS home_team ON (home_team.team_id = game_matches.home_team_id) 
+	LEFT JOIN game_teams AS away_team ON (away_team.team_id = game_matches.away_team_id) 
 	LEFT JOIN game_match_time USING (match_id) 
 	LEFT JOIN game_results USING (match_id) 
 WHERE 
 	(game_results.done IS NULL OR game_results.done = 0)
 	AND
 	game_match_referees.referee_id = {$user->referee_id}
+ORDER BY game_match_time.match_time, game_match_time.field_id
 SQL_BLOCK;
 
-		$list = $database->read($query, 'match_id');
+		$list = $database->objects($query, 'match_id');
 		
 		echo <<<HTML_BLOCK
 			<h2>Mina matcher</h2>
@@ -390,13 +391,13 @@ HTML_BLOCK;
 
 		$query =  <<<SQL_BLOCK
 SELECT 
-	home_team.team_name AS home_team_name, 
-	away_team.team_name AS away_team_name, 
+	COALESCE(home_team.team_name, game_matches.home_team_description) AS home_team_name, 
+	COALESCE(away_team.team_name, game_matches.away_team_description) AS away_team_name, 
 	game_match_time.*, 
 	game_matches.* 
 FROM game_matches 
-	INNER JOIN game_teams AS home_team ON (home_team.team_id = game_matches.home_team_id) 
-	INNER JOIN game_teams AS away_team ON (away_team.team_id = game_matches.away_team_id) 
+	LEFT JOIN game_teams AS home_team ON (home_team.team_id = game_matches.home_team_id) 
+	LEFT JOIN game_teams AS away_team ON (away_team.team_id = game_matches.away_team_id) 
 	LEFT JOIN game_match_referees USING (match_id) 
 	LEFT JOIN game_match_time USING (match_id) 
 WHERE game_match_referees.referee_id IS NULL
@@ -426,6 +427,8 @@ HTML_BLOCK;
 			$odd = FALSE;
 			foreach($list as $match_id => $match)
 			{
+				$match = (object) $match;
+
 				$url = e("?u={$user->referee_code}&book={$match_id}");
 				$url2 = e("?u={$user->referee_code}&play={$match_id}");
 				$row_class = (($odd = !$odd) ? 'odd' : 'even');
@@ -451,17 +454,17 @@ HTML_BLOCK;
 
 		$query = <<<SQL_BLOCK
 SELECT 
-	home_team.team_name AS home_team_name, 
-	away_team.team_name AS away_team_name, 
+	COALESCE(home_team.team_name, game_matches.home_team_description) AS home_team_name, 
+	COALESCE(away_team.team_name, game_matches.away_team_description) AS away_team_name, 
 	game_match_time.*, 
 	game_match_referees.*,
 	game_results.*
 FROM game_match_referees 
 	INNER JOIN game_matches USING (match_id) 
-	INNER JOIN game_teams AS home_team ON (home_team.team_id = game_matches.home_team_id) 
-	INNER JOIN game_teams AS away_team ON (away_team.team_id = game_matches.away_team_id) 
+	LEFT JOIN game_teams AS home_team ON (home_team.team_id = game_matches.home_team_id) 
+	LEFT JOIN game_teams AS away_team ON (away_team.team_id = game_matches.away_team_id) 
 	LEFT JOIN game_match_time USING (match_id) 
-	LEFT JOIN game_results USING (match_id) 
+	INNER JOIN game_results USING (match_id) 
 WHERE 
 	game_results.done = 1
 	AND

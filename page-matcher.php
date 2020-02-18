@@ -59,8 +59,9 @@ SQL_QUERY;
 		echo "<tr>";
 		echo "<th>Plan</th>";
 		echo "<th>Tid</th>";
-		echo "<th colspan='2'>Lag 1</th>";
-		echo "<th colspan='2'>Lag 2</th>";
+		echo "<th>Lag 1</th>";
+		echo "<th>Mål</th>";
+		echo "<th>Lag 2</th>";
 		echo "<th>Grupp</th>";
 // 		echo "<th>Klass</th>";
 		echo "</tr>";
@@ -72,7 +73,8 @@ SQL_QUERY;
 		{
 			while($next_break AND $next_break->break_from < $match->match_time)
 			{
-					echo '<tr><td colspan="7" style="text-align: center;">' . htmlentities($next_break->break_name) . '</td></tr>';
+					$short_time = date('H:i', strtotime($next_break->break_from));
+					echo '<tr><td></td><td>' . $short_time . '</td><td colspan="3" style="text-align: center;">' . htmlentities($next_break->break_name, ENT_QUOTES | ENT_HTML5) . '</td><td></td></tr>';
 
 				$next_break = null;
 				if($breaks) $next_break = array_shift($breaks);
@@ -89,18 +91,16 @@ SQL_QUERY;
             {
                 echo "<td>{$match->home_team_description}</td>";
             }
+			echo '<td style="text-align: center;">';
 			if($match->done)
 			{
-				echo "<td><b>{$match->home_goals}</b></td>";
+				echo "<b>{$match->home_goals}&nbsp;-&nbsp;{$match->away_goals}</b>";
 			}
 			else if($match->done === 0)
 			{
-				echo "<td><i>{$match->home_goals}</i></td>";
+				echo "<i>{$match->home_goals}&nbsp;-&nbsp;{$match->away_goals}</i>";
 			}
-			else
-			{
-				echo "<td></td>";
-			}
+			echo '</td>';
 			if($match->away_team_id)
             {
                 echo "<td title='{$match->away_team_id}'>{$teams[$match->away_team_id]->team_name}</td>";
@@ -109,20 +109,16 @@ SQL_QUERY;
             {
                 echo "<td>{$match->away_team_description}</td>";
             }
-			if($match->done)
+
+			if($match->match_type === 'GROUP')
 			{
-				echo "<td><b>{$match->away_goals}</b></td>";
-			}
-			else if($match->done === 0)
-			{
-				echo "<td><i>{$match->away_goals}</i></td>";
+				echo "<td>{$teams[$match->home_team_id]->group_name}</td>";
 			}
 			else
 			{
 				echo "<td></td>";
 			}
-			echo "<td>{$teams[$match->home_team_id]->group_name}</td>";
-// 			echo "<td>{$teams[$match->home_team_id]->class_name}</td>";
+			// 			echo "<td>{$teams[$match->home_team_id]->class_name}</td>";
 			echo "</tr>";
 		}
 

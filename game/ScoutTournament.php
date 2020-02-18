@@ -34,7 +34,7 @@
 			add_submenu_page($menu_slug, 'Grupper', 'Grupp', $capability, $menu_slug . '_groups', 'ScoutTournament::game_group_page');
 			add_submenu_page($menu_slug, 'Matcher', 'Match', $capability, $menu_slug . '_match', 'ScoutTournament::game_match_page');
 			add_submenu_page($menu_slug, 'Edit Match', 'Edit Match', $capability, $menu_slug . '_edit_match', 'ScoutTournament::game_edit_match_page');
-			add_submenu_page($menu_slug, 'Dommare', 'Dommare', $capability, $menu_slug . '_referees', 'ScoutTournament::game_referees_page');
+			add_submenu_page($menu_slug, 'Domare', 'Domare', $capability, $menu_slug . '_referees', 'ScoutTournament::game_referees_page');
 		}
 
 		//<editor-fold desc="Functions">
@@ -239,6 +239,20 @@
 			global $wpdb;
 			$html_parts = (object) [];
 
+			if($_GET['attendance']) {
+				$wpdb->replace(
+					'game_attendance',
+					[
+						'team_id' => $_GET['attendance'],
+						'attendance_status' => 'ok',
+					],
+					[
+						'%d',
+						'%s',
+					]
+				);
+			}
+
 			$query = <<<'SQL_BLOCK'
 				SELECT
 					game_classes.*,
@@ -277,10 +291,12 @@
 					game_teams.team_id,
 					game_teams.team_name,
 					game_classes.class_name,
-					game_groups.group_name
+					game_groups.group_name,
+					game_attendance.attendance_status
 				FROM game_teams
 					LEFT JOIN game_classes USING (class_id)
 					LEFT JOIN game_groups USING (group_id)
+					LEFT JOIN game_attendance USING (team_id)
 				ORDER BY
 					game_teams.class_id,
 					game_teams.group_id,
@@ -303,11 +319,13 @@
 				{
 					/** @var Team $teams */
 					$safe_team = self::html_encode_object($team);
+					$status = self::html_encode($safe_team->attendance_status) ?: "<a href='?page=game&amp;attendance={$safe_team->team_id}'>add</a>";
 					$html_parts->team_tbody .= <<<HTML_BLOCK
 						<tr>
 							<td><a href='?page=game_teams&amp;team_id={$safe_team->team_id}'>{$safe_team->team_name}</a></td>
 							<td>{$safe_team->class_name}</td>
 							<td>{$safe_team->group_name}</td>
+							<td>{$status}</td>
 						</tr>
 					HTML_BLOCK;
 				}
@@ -346,6 +364,7 @@
 							<th>Lagnamn</th>
 							<th>Klass</th>
 							<th>Grupp</th>
+							<th>Närvarande</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -980,7 +999,7 @@
 							<h2>Koppla Lag</h2>
 						</legend>
 						<label>
-							<span style='display: inline-block; width: 120px;'>Klass:</span>
+							<span style='display: inline-block; width: 120px;'>Lag:</span>
 							<select name='connect[team_id]' style='width: 200px;' >
 								<option value=''>V&auml;lj lag</option>
 								{$html_parts->team_options}
@@ -1093,12 +1112,15 @@
 					game_match_time.match_time,
 					game_fields.field_name,
 					game_referees.referee_name,
+					game_results.home_goals,
+					game_results.away_goals,
 					game_match_time.match_status
 				FROM game_matches
 					LEFT JOIN game_match_time USING (match_id)
 					LEFT JOIN game_match_referees USING (match_id)
 					LEFT JOIN game_referees USING (referee_id)
 					LEFT JOIN game_fields USING (field_id)
+					LEFT JOIN game_results USING (match_id)
 				ORDER BY
 					game_match_time.match_time,
 					game_matches.match_id
@@ -1137,16 +1159,21 @@
 					$home_team_name = $match->home_team_id ? $safe_home_team->team_name : $match->home_team_description;
 					$away_team_name = $match->away_team_id ? $safe_away_team->team_name : $match->away_team_description;
 					$match_time = $match->match_time ? $safe_match->match_time : '(set)';
+					$tr_class = 'match_status_' . strtolower($safe_match->match_status);
+					$goals = ($safe_match->home_goals ?: 0) . ' - ' . ($safe_match->away_goals ?: 0);
+					$goals = $safe_match->match_status === 'QUEUE' ? '' : $goals;
+					$group_name = $safe_match->match_type === 'GROUP' ? $safe_home_team->group_name : $safe_match->match_type;
 					$html_parts->match_tbody .= <<<HTML_BLOCK
-						<tr>
+						<tr class='{$tr_class}'>
 							<td>{$match->match_id}</td>
 							<td>{$home_team_name}</td>
 							<td>{$away_team_name}</td>
-							<td>{$safe_home_team->group_name}</td>
+							<td>{$group_name}</td>
 							<td>{$safe_home_team->class_name}</td>
 							<td><a href="?page=game_edit_match&amp;id={$safe_match->match_id}" style="cursor: pointer; text-decoration: underline;">{$match_time}</td>
 							<td>{$safe_match->field_name}</td>
 							<td>{$safe_match->referee_name}</td>
+							<td>{$goals}</td>
 							<td>{$safe_match->match_status}</td>
 						</tr>
 					HTML_BLOCK;
@@ -1181,6 +1208,13 @@
 					{
 						border: solid gray 2px;
 					}
+					
+					TR.match_status_played {
+						background-color: rgba(0,0,255, 0.2);
+					}
+					TR.match_status_started {
+						background-color: rgba(0,255,0, 0.2);
+					}
 				</style>
 
 				<h2>Matcher</h2>
@@ -1195,6 +1229,7 @@
 							<th>Time</th>
 							<th>Plan</th>
 							<th>Referee</th>
+							<th>Mål</th>
 							<th>Status</th>
 						</tr>
 					</thead>
@@ -1288,8 +1323,47 @@
 				}
 				$wpdb->query($query);
 			}
+			if($safe_post->reset->action) {
+				$wpdb->update(
+					'game_match_time',
+					[
+						'match_status' => 'QUEUE',
+
+					],
+					[
+						'match_id' => $_GET['id'],
+					],
+					[
+						'%s',
+					],
+					[
+						'%d',
+					]
+				);
+				$wpdb->delete(
+					'game_results',
+					[
+						'match_id' => $_GET['id'],
+					]
+				);
+			}
+
+			$match_id = (int) $_GET['id'];
 			/** @var MatchWithTime[] $matcher */
-			$matcher = $wpdb->get_results('SELECT * FROM game_matches LEFT JOIN game_match_time USING (match_id) WHERE match_id = ' . (int) $_GET['id'], OBJECT_K);
+			$query = <<<SQL_BLOCK
+				SELECT
+					game_matches.*,
+					game_match_time.*,
+					game_referees.*,
+					game_results.*
+				FROM game_matches 
+				   LEFT JOIN game_match_time USING (match_id) 
+				   LEFT JOIN game_match_referees USING (match_id) 
+				   LEFT JOIN game_referees USING (referee_id)
+				   LEFT JOIN game_results USING (match_id, referee_id)
+				WHERE match_id = {$match_id}
+			SQL_BLOCK;
+			$matcher = $wpdb->get_results($query, OBJECT_K);
 			if(empty($matcher))
 			{
 				throw new RuntimeException('Bad id');
@@ -1335,6 +1409,8 @@
 				$html_parts->team_options,
 			);
 
+			$html_parts->debug ='<pre>' . self::html_encode(json_encode($match, 128*3)) . '</pre>';
+
 			echo <<<HTML_BLOCK
 				<form action='#' method='post'>
 					<label>
@@ -1374,6 +1450,10 @@
 						<input type="submit" value="Save" />
 					</label><br />
 				</form>
+				{$html_parts->debug}
+				<form action='#' method='post'>
+					<input type='submit' name='reset[action]' value='Reset score / status' />
+				</form>
 			HTML_BLOCK;
 		}
 
@@ -1401,11 +1481,11 @@
 				);
 				if($result)
 				{
-					echo '<p>Dommare tillagd.</p>';
+					echo '<p>Domare tillagd.</p>';
 				}
 				else
 				{
-					echo '<p>Misslyckades lägga till dommare.</p>';
+					echo '<p>Misslyckades lägga till domare.</p>';
 				}
 			}
 			$query = <<<'SQL_BLOCK'
@@ -1439,7 +1519,7 @@
 			{
 				$html_parts->referee_tbody = <<<'HTML_BLOCK'
 					<tr>
-						<td colspan='2'>Inga dommare</td>
+						<td colspan='2'>Inga domare</td>
 					</tr>
 				HTML_BLOCK;
 			}
@@ -1456,7 +1536,7 @@
 						border: solid gray 2px;
 					}
 				</style>
-				<h2>Dommare</h2>
+				<h2>Domare</h2>
 				<table class='puggan_table'>
 					<thead>
 						<tr>
@@ -1472,7 +1552,7 @@
 				<form action='#' method='post'>
 					<fieldset>
 						<legend>
-							<h2>Lägg till dommare</h2>
+							<h2>Lägg till domare</h2>
 						</legend>
 						<label>
 							<span style='display: inline-block; width: 120px;'>Kod:</span>
@@ -1484,7 +1564,7 @@
 						</label><br />
 						<label>
 							<span style='display: inline-block; width: 120px;'></span>
-							<input type='submit' name='add[action]' style='width: 200px;' value='Lägg till dommare' />
+							<input type='submit' name='add[action]' style='width: 200px;' value='Lägg till domare' />
 						</label>
 					</fieldset>
 				</form>
