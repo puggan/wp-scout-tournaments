@@ -1,8 +1,6 @@
 <?php
 
-	require_once __DIR__ . '/database.new.php';
-
-	$database = new database('ibn19', 'ibn19', '4a6rMJYyGQ88fuep');
+	require_once __DIR__ . '/db.php';
 
 	$fetch_query = <<<SQL_BLOCK
 SELECT

@@ -3,11 +3,9 @@
 	use PHPDoc\DbResults\MatchResult;
 	use PHPDoc\Models\Referee;
 
-	require_once __DIR__ . '/database.new.php';
+	require_once __DIR__ . '/db.php';
 
 	function e($s) {return htmlentities($s, ENT_QUOTES | ENT_HTML5);}
-
-	$database = new database('ibn19', 'ibn19', '4a6rMJYyGQ88fuep');
 
 	$user = [];
 	if(!empty($_GET['u']))

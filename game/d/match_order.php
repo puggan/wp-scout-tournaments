@@ -7,9 +7,7 @@
 	define('HIGH_LAST_MATCH_WEIGHT', 100 * -HIGH_MATCH_COUNT_WEIGHT);
 	define('LOW_LAST_MATCH_WEIGHT', 100 * HIGH_LAST_MATCH_WEIGHT);
 
-	require_once __DIR__ . '/database.new.php';
-
-	$database = new database('ibn19', 'ibn19', '4a6rMJYyGQ88fuep');
+	require_once __DIR__ . '/db.php';
 
 	$query = "SELECT * FROM game_fields";
 	$fields = $database->read($query, 'field_id', 'field_name');
