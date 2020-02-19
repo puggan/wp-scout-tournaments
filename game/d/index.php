@@ -22,11 +22,11 @@
 		echo <<<HTML_BLOCK
 			<html>
 				<head>
-					<title>IBN19 - Domare</title>
+					<title>{$siteName} - Domare</title>
 				</head>
 				<body>
 					<div style='width: 800px; margin: auto;'>
-						<h1>IBN19 - Domare</h1>
+						<h1>{$siteName} - Domare</h1>
 						<form>
 							<fieldset>
 								<label>
@@ -86,7 +86,7 @@
 	echo <<<HTML_BLOCK
 <html>
 	<head>
-		<title>IBN19 - Domare - {$referee_name}</title>
+		<title>{$siteName} - Domare - {$referee_name}</title>
 
 		<script src="/d/js/onload_manager.js"></script>
 		<script src="/d/js/misc.js"></script>
@@ -135,7 +135,7 @@
 	<body>
 		<div style='width: 800px; margin: auto;'>
 			{$messages_html}
-			<h1>IBN19 - Domare - {$user->referee_name}</h1>
+			<h1>{$siteName} - Domare - {$user->referee_name}</h1>
 HTML_BLOCK;
 
 	if(isset($_GET['m']))

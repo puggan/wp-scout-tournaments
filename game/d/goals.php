@@ -32,7 +32,7 @@ SQL_BLOCK;
 	echo <<<HTML_BLOCK
 <html>
 	<head>
-		<title>IBN19 - Mål</title>
+		<title>{$siteName} - Mål</title>
 		<link href="/d/js/tables.css" type="text/css" rel="stylesheet" />
 		<meta http-equiv="refresh" content="5" />
 		<style>
