@@ -4,7 +4,7 @@ add_action( 'wp_head', 'scouterna_change_color_profile' );
 
 function scouterna_change_color_profile() {
 	$colorthemesettings = get_option( 'scout_colortheme_options' );
-	$color = $colorthemesettings['color'];
+	$color = $colorthemesettings ? $colorthemesettings['color'] : '';
 	
 	$scout_color_logo = '';
 	$scout_color_h_a = '';

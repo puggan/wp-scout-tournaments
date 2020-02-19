@@ -25,16 +25,22 @@
 <?php
 	global $post;
 	$logosettings = get_option( 'scout_logo_options' );
-	$favic = $logosettings['misc']['favicon_logo_url'];
-	$iosic57 = $logosettings['misc']['iphone_logo_url'];
-	$iosic114 = $logosettings['misc']['iphoneretina_logo_url'];
-	$iosic72 = $logosettings['misc']['ipad_logo_url'];
-	$iosic144 = $logosettings['misc']['ipadretina_logo_url'];
+	if($logosettings) {
+		$favic = $logosettings['misc']['favicon_logo_url'];
+		$iosic57 = $logosettings['misc']['iphone_logo_url'];
+		$iosic114 = $logosettings['misc']['iphoneretina_logo_url'];
+		$iosic72 = $logosettings['misc']['ipad_logo_url'];
+		$iosic144 = $logosettings['misc']['ipadretina_logo_url'];
+	}
+	else
+	{
+		$favic = $iosic57 = $iosic114 = $iosic72 = $iosic144= '';
+	}
 
 	if( is_object( $post ) && wp_get_attachment_url( get_post_thumbnail_id( $post->ID ) ) ) {
 		$fbimage = wp_get_attachment_url( get_post_thumbnail_id( $post->ID ) );
 	}
-	elseif( $logosettings['misc']['facebook_logo_url'] ){
+	elseif( $logosettings && $logosettings['misc']['facebook_logo_url'] ){
 		$fbimage = $logosettings['misc']['facebook_logo_url'];
 	}
 	else{

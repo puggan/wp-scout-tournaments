@@ -3,10 +3,15 @@
 
 function scouterna_display_header_logos(){
 	$logosettings = get_option( 'scout_logo_options' );
-	$logoimg = $logosettings['main']['logo_url'];
-	$logostrong = $logosettings['main']['logo_strong'];
-	$logonormal = $logosettings['main']['logo_normal'];
-	
+	if($logosettings) {
+		$logoimg = $logosettings['main']['logo_url'];
+		$logostrong = $logosettings['main']['logo_strong'];
+		$logonormal = $logosettings['main']['logo_normal'];
+	}
+	else
+	{
+		$logoimg = $logostrong = $logonormal = "";
+	}
 	if( $logoimg != "" || $logostrong != "" || $logonormal != "" ){
 		$displaycustomlogo = true;
 	}
