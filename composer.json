@@ -1,0 +1,11 @@
+{
+  "name": "puggan/wp-scout-tournaments",
+  "description": "Tool for hosting tornament games",
+  "type": "wordpress-theme",
+  "require": {
+    "composer/installers": "~1.0"
+  },
+  "extra": {
+    "installer-name": "scout-tournaments"
+  }
+}
