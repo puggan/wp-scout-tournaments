@@ -239,7 +239,7 @@
 			global $wpdb;
 			$html_parts = (object) [];
 
-			if($_GET['attendance']) {
+			if(!empty($_GET['attendance'])) {
 				$wpdb->replace(
 					'game_attendance',
 					[
@@ -306,7 +306,7 @@
 			$teams = $wpdb->get_results($query, OBJECT_K);
 			if(!$teams)
 			{
-				$html_parts->team_taable_content = <<<HTML_BLOCK
+				$html_parts->team_tbody = <<<HTML_BLOCK
 					<tr>
 						<td colspan='3'>Inga lag</td>
 					</tr>
