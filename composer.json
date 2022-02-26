@@ -4,7 +4,9 @@
   "type": "wordpress-theme",
   "require": {
     "composer/installers": "~1.0",
-    "puggan/wordpress": ">=5.9.1"
+    "puggan/wordpress": ">=5.9.1",
+    "php": "^8.1",
+    "ext-mysqli": "*"
   },
   "autoload": {
     "Puggan\\Ibn": "game/"
