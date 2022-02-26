@@ -5,8 +5,10 @@ namespace Puggan\Ibn\D;
 // require_once("/mnt/data/www/libs/database.php");
 // $database = new database('use dbname', 'username', 'password');
 
-class database
+class Database
 {
+    public static ?self $me = null;
+
     public ?\mysqli $link = null;
     public string $last_query = '';
     public string $last_error = '';
@@ -22,6 +24,10 @@ class database
         }
 
         $this->link->set_charset("utf8");
+
+        if (self::$me === null) {
+            self::$me = $this;
+        }
     }
 
     /** @noinspection PhpMissingReturnTypeInspection not allowed on __destruct */
