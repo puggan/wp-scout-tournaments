@@ -6,6 +6,9 @@
     "composer/installers": "~1.0",
     "puggan/wordpress": ">=5.9.1"
   },
+  "autoload": {
+    "Puggan\\Ibn": "game/"
+  },
   "extra": {
     "installer-name": "scout-tournaments"
   }
