@@ -1,25 +1,28 @@
 <?php
 
-	use PHPDoc\DbResults\MatchResult;
-	use PHPDoc\Models\Referee;
+namespace Puggan\Ibn\D;
 
-	require_once __DIR__ . '/db.php';
+use PHPDoc\DbResults\MatchResult;
+use PHPDoc\Models\Referee;
 
-	function e($s) {return htmlentities($s, ENT_QUOTES | ENT_HTML5);}
+require_once __DIR__ . '/db.php';
 
-	$user = [];
-	if(!empty($_GET['u']))
-	{
-		$query = 'SELECT * FROM game_referees WHERE referee_code = ' . $database->quote($_GET['u']);
+(static function (Database $database, string $siteName) {
+    $e = static function ($s) {
+        return htmlentities($s, ENT_QUOTES | ENT_HTML5);
+    };
 
-		/** @var Referee $user */
-		$user = $database->object($query);
-	}
+    $user = [];
+    if (!empty($_GET['u'])) {
+        $query = 'SELECT * FROM game_referees WHERE referee_code = ' . $database->quote($_GET['u']);
 
-	// Not logged in?
-	if(!$user)
-	{
-		echo <<<HTML_BLOCK
+        /** @var Referee $user */
+        $user = $database->object($query);
+    }
+
+    // Not logged in?
+    if (!$user) {
+        echo <<<HTML_BLOCK
 			<html>
 				<head>
 					<title>{$siteName} - Domare</title>
@@ -40,50 +43,44 @@
 				</body>
 			</html>
 		HTML_BLOCK;
-		exit();
-	}
+        exit();
+    }
 
-	$messages = [];
+    $messages = [];
 
-	if(isset($_GET['book']))
-	{
-		$set_parts = [];
-		$set_parts[] = 'referee_id = ' . $user->referee_id;
-		$set_parts[] = 'match_id = ' . (int) $_GET['book'];
-		$query = 'INSERT INTO game_match_referees SET ' . implode(', ', $set_parts);
+    if (isset($_GET['book'])) {
+        $set_parts = [];
+        $set_parts[] = 'referee_id = ' . $user->referee_id;
+        $set_parts[] = 'match_id = ' . (int)$_GET['book'];
+        $query = 'INSERT INTO game_match_referees SET ' . implode(', ', $set_parts);
 
-		if($database->update($query))
-		{
-			$messages[] = e("Match {$_GET['book']} bokad");
-		}
-		else
-		{
-			$messages[] = e("Misslyckades boka match {$_GET['book']}");
-			$messages[] = e($query);
-		}
-	}
+        if ($database->update($query)) {
+            $messages[] = $e("Match {$_GET['book']} bokad");
+        } else {
+            $messages[] = $e("Misslyckades boka match {$_GET['book']}");
+            $messages[] = $e($query);
+        }
+    }
 
-	if(isset($_GET['play']))
-	{
-		$set_parts = [];
-		$set_parts[] = 'referee_id = ' . $user->referee_id;
-		$set_parts[] = 'match_id = ' . (int) $_GET['play'];
-		$query = 'INSERT INTO game_match_referees SET ' . implode(', ', $set_parts);
+    if (isset($_GET['play'])) {
+        $set_parts = [];
+        $set_parts[] = 'referee_id = ' . $user->referee_id;
+        $set_parts[] = 'match_id = ' . (int)$_GET['play'];
+        $query = 'INSERT INTO game_match_referees SET ' . implode(', ', $set_parts);
 
-		if($database->update($query))
-		{
-			header("Location: ?u={$user->referee_code}&m=" . (int) $_GET['play']);
-			exit();
-		}
+        if ($database->update($query)) {
+            header("Location: ?u={$user->referee_code}&m=" . (int)$_GET['play']);
+            exit();
+        }
 
-		$messages[] = e("Misslyckades boka match {$_GET['book']}");
-		$messages[] = e($query);
-	}
+        $messages[] = $e("Misslyckades boka match {$_GET['book']}");
+        $messages[] = $e($query);
+    }
 
-	$messages_html = $messages ? '<ul><li>' . implode('</li><li>', $messages) . '</li></ul>' : '';
+    $messages_html = $messages ? '<ul><li>' . implode('</li><li>', $messages) . '</li></ul>' : '';
 
-	$referee_name = e($user->referee_name);
-	echo <<<HTML_BLOCK
+    $referee_name = $e($user->referee_name);
+    echo <<<HTML_BLOCK
 <html>
 	<head>
 		<title>{$siteName} - Domare - {$referee_name}</title>
@@ -138,10 +135,9 @@
 			<h1>{$siteName} - Domare - {$user->referee_name}</h1>
 HTML_BLOCK;
 
-	if(isset($_GET['m']))
-	{
-		$match_id = (int) $_GET['m'];
-		$fetch_query = <<<SQL_BLOCK
+    if (isset($_GET['m'])) {
+        $match_id = (int)$_GET['m'];
+        $fetch_query = <<<SQL_BLOCK
 SELECT
 	COALESCE(home_team.team_name, home_team_description) AS home_team_name,
 	COALESCE(away_team.team_name, away_team_description) AS away_team_name,
@@ -157,107 +153,86 @@ FROM game_matches
 WHERE game_matches.match_id = {$match_id}
 SQL_BLOCK;
 
-		/** @var MatchResult $match */
-		$match = $database->object($fetch_query);
+        /** @var MatchResult $match */
+        $match = $database->object($fetch_query);
 
-		$match->home_goals = (int) $match->home_goals;
-		$match->away_goals = (int) $match->away_goals;
+        $match->home_goals = (int)$match->home_goals;
+        $match->away_goals = (int)$match->away_goals;
 
-		$url = e("?u={$user->referee_code}&m={$_GET['m']}");
+        $url = $e("?u={$user->referee_code}&m={$_GET['m']}");
 
-		if($_POST)
-		{
-			$update_set_parts = [];
-			$set_parts = [];
-			$set_parts['match_id'] = 'match_id = ' . $match_id;
-			$set_parts['referee_id'] = 'referee_id = ' . $user->referee_id;
-			$set_parts['done'] = 'done = 0';
-			$set_parts['home_goals'] = 'home_goals = 0';
-			$set_parts['away_goals'] = 'away_goals = 0';
-			$set_parts_time = [];
+        if ($_POST) {
+            $update_set_parts = [];
+            $set_parts = [];
+            $set_parts['match_id'] = 'match_id = ' . $match_id;
+            $set_parts['referee_id'] = 'referee_id = ' . $user->referee_id;
+            $set_parts['done'] = 'done = 0';
+            $set_parts['home_goals'] = 'home_goals = 0';
+            $set_parts['away_goals'] = 'away_goals = 0';
+            $set_parts_time = [];
 
-			if(isset($_POST['update']))
-			{
-				$update_set_parts['home_goals'] = 'home_goals = ' . (int) $_POST['home_goals'];
-				$update_set_parts['away_goals'] = 'away_goals = ' . (int) $_POST['away_goals'];
-				$set_parts = $update_set_parts + $set_parts;
-			}
-			else if(isset($_POST['end']))
-			{
-				$update_set_parts['done'] = 'done = 1';
-				$update_set_parts['home_goals'] = 'home_goals = ' . (int) $_POST['home_goals'];
-				$update_set_parts['away_goals'] = 'away_goals = ' . (int) $_POST['away_goals'];
-				$set_parts = $update_set_parts + $set_parts;
-				$set_parts_time['match_status'] = "match_status = 'PLAYED'";
-			}
-			else if(isset($_POST['start']))
-			{
-				$update_set_parts = $set_parts;
-				$set_parts_time['match_status'] = "match_status = 'STARTED'";
-			}
-			else if(isset($_POST['home_inc']))
-			{
-				$update_set_parts['home_goals'] = 'home_goals = home_goals + 1';
-				$set_parts['home_goals'] = 'home_goals = 1';
-			}
-			else if(isset($_POST['away_inc']))
-			{
-				$update_set_parts['away_goals'] = 'away_goals = away_goals + 1';
-				$set_parts['away_goals'] = 'away_goals = 1';
-			}
-			else if(isset($_POST['home_dec']))
-			{
-				$update_set_parts['home_goals'] = 'home_goals = GREATEST(0, home_goals - 1)';
-			}
-			else if(isset($_POST['away_dec']))
-			{
-				$update_set_parts['home_goals'] = 'away_goals = GREATEST(0, away_goals - 1)';
-			}
+            if (isset($_POST['update'])) {
+                $update_set_parts['home_goals'] = 'home_goals = ' . (int)$_POST['home_goals'];
+                $update_set_parts['away_goals'] = 'away_goals = ' . (int)$_POST['away_goals'];
+                $set_parts = $update_set_parts + $set_parts;
+            } elseif (isset($_POST['end'])) {
+                $update_set_parts['done'] = 'done = 1';
+                $update_set_parts['home_goals'] = 'home_goals = ' . (int)$_POST['home_goals'];
+                $update_set_parts['away_goals'] = 'away_goals = ' . (int)$_POST['away_goals'];
+                $set_parts = $update_set_parts + $set_parts;
+                $set_parts_time['match_status'] = "match_status = 'PLAYED'";
+            } elseif (isset($_POST['start'])) {
+                $update_set_parts = $set_parts;
+                $set_parts_time['match_status'] = "match_status = 'STARTED'";
+            } elseif (isset($_POST['home_inc'])) {
+                $update_set_parts['home_goals'] = 'home_goals = home_goals + 1';
+                $set_parts['home_goals'] = 'home_goals = 1';
+            } elseif (isset($_POST['away_inc'])) {
+                $update_set_parts['away_goals'] = 'away_goals = away_goals + 1';
+                $set_parts['away_goals'] = 'away_goals = 1';
+            } elseif (isset($_POST['home_dec'])) {
+                $update_set_parts['home_goals'] = 'home_goals = GREATEST(0, home_goals - 1)';
+            } elseif (isset($_POST['away_dec'])) {
+                $update_set_parts['home_goals'] = 'away_goals = GREATEST(0, away_goals - 1)';
+            }
 
-			if($set_parts_time)
-			{
-				$set_parts_sql = implode(', ', $set_parts_time);
-				$update_query = "UPDATE game_match_time SET {$set_parts_sql} WHERE match_id = ". $match_id;
-				$database->update($update_query);
-			}
-			
-			if($update_set_parts)
-			{
-				$set_parts_sql = implode(', ', $set_parts);
-				$update_set_parts_sql = implode(', ', $update_set_parts);
-				$update_query = "INSERT INTO game_results SET {$set_parts_sql} ON DUPLICATE KEY UPDATE {$update_set_parts_sql}";
+            if ($set_parts_time) {
+                $set_parts_sql = implode(', ', $set_parts_time);
+                $update_query = "UPDATE game_match_time SET {$set_parts_sql} WHERE match_id = " . $match_id;
+                $database->update($update_query);
+            }
 
-				$database->update($update_query);
-				if(isset($_POST['end']))
-				{
-					header('Location: ?u=' . $user->referee_code);
-					exit();
-				}
+            if ($update_set_parts) {
+                $set_parts_sql = implode(', ', $set_parts);
+                $update_set_parts_sql = implode(', ', $update_set_parts);
+                $update_query = "INSERT INTO game_results SET {$set_parts_sql} ON DUPLICATE KEY UPDATE {$update_set_parts_sql}";
 
-				$match = $database->object($fetch_query);
-			}
-		}
+                $database->update($update_query);
+                if (isset($_POST['end'])) {
+                    header('Location: ?u=' . $user->referee_code);
+                    exit();
+                }
 
-		if(!empty($_GET['swap']))
-		{
-			$side_1 = 'home';
-			$side_2 = 'away';
-			$swap_url = $url;
-			$form_url = $url . '&swap=1';
-		}
-		else
-		{
-			$side_1 = 'away';
-			$side_2 = 'home';
-			$form_url = $url;
-			$swap_url = $url . '&swap=1';
-		}
-		
-		switch($match->match_status)
-		{
-			case 'STARTED':
-			{
-				echo <<<HTML_BLOCK
+                $match = $database->object($fetch_query);
+            }
+        }
+
+        if (!empty($_GET['swap'])) {
+            $side_1 = 'home';
+            $side_2 = 'away';
+            $swap_url = $url;
+            $form_url = $url . '&swap=1';
+        } else {
+            $side_1 = 'away';
+            $side_2 = 'home';
+            $form_url = $url;
+            $swap_url = $url . '&swap=1';
+        }
+
+        switch ($match->match_status) {
+            case 'STARTED':
+            {
+                echo <<<HTML_BLOCK
 			<h2>Match {$match->match_id} - {$match->{"{$side_1}_team_name"}} vs {$match->{"{$side_2}_team_name"}}</h2>
 			<form action="{$form_url}" method='post'>
 				<table>
@@ -302,33 +277,31 @@ SQL_BLOCK;
 				<input type='button' value='Byt sida' onclick="location.href='{$swap_url}'" />
 			</form>
 HTML_BLOCK;
-				break;
-			}
-			case 'PLAYED':
-			{
-				echo <<<HTML_BLOCK
-			<h2>Match {$match->match_id} - {$match->{$side_1."_team_name"}} vs {$match->{"{$side_2}_team_name"}}</h2>
+                break;
+            }
+            case 'PLAYED':
+            {
+                echo <<<HTML_BLOCK
+			<h2>Match {$match->match_id} - {$match->{$side_1 . "_team_name"}} vs {$match->{"{$side_2}_team_name"}}</h2>
 			<p>Matchen mellan {$match->{"{$side_1}_team_name"}} och {$match->{"{$side_2}_team_name"}} slutade {$match->{"{$side_1}_goals"}} - {$match->{"{$side_2}_goals"}}</p>
 HTML_BLOCK;
-				break;
-			}
-			case 'QUEUE':
-			default:
-			{
-				echo <<<HTML_BLOCK
-			<h2>Match {$match->match_id} - {$match->{$side_1."_team_name"}} vs {$match->{"{$side_2}_team_name"}}</h2>
+                break;
+            }
+            case 'QUEUE':
+            default:
+            {
+                echo <<<HTML_BLOCK
+			<h2>Match {$match->match_id} - {$match->{$side_1 . "_team_name"}} vs {$match->{"{$side_2}_team_name"}}</h2>
 			<p>Matchen mellan {$match->{"{$side_1}_team_name"}} och {$match->{"{$side_2}_team_name"}} ska börja {$match->match_time}</p>
 			<form action="{$form_url}" method='post'>
 				<input type='submit' name='start' value='Starta matchen' />
 			</form>
 HTML_BLOCK;
-				break;
-			}
-		}
-	}
-	else
-	{
-		$query = <<<SQL_BLOCK
+                break;
+            }
+        }
+    } else {
+        $query = <<<SQL_BLOCK
 SELECT 
 	COALESCE(home_team.team_name, game_matches.home_team_description) AS home_team_name, 
 	COALESCE(away_team.team_name, game_matches.away_team_description) AS away_team_name, 
@@ -347,9 +320,9 @@ WHERE
 ORDER BY game_match_time.match_time, game_match_time.field_id
 SQL_BLOCK;
 
-		$list = $database->objects($query, 'match_id');
-		
-		echo <<<HTML_BLOCK
+        $list = $database->objects($query, 'match_id');
+
+        echo <<<HTML_BLOCK
 			<h2>Mina matcher</h2>
 			<table>
 				<thead>
@@ -364,13 +337,12 @@ SQL_BLOCK;
 				<tbody>
 HTML_BLOCK;
 
-		$odd = FALSE;
-		foreach($list as $match_id => $match)
-		{
-			$url = e("?u={$user->referee_code}&m={$match_id}");
-			$row_class = (($odd = !$odd) ? 'odd' : 'even');
+        $odd = false;
+        foreach ($list as $match_id => $match) {
+            $url = $e("?u={$user->referee_code}&m={$match_id}");
+            $row_class = (($odd = !$odd) ? 'odd' : 'even');
 
-			echo <<<HTML_BLOCK
+            echo <<<HTML_BLOCK
 				<tr class='{$row_class}'>
 					<td><a href='{$url}'>Match {$match->match_id}</a></td>
 					<td>{$match->field_id}</td>
@@ -379,15 +351,15 @@ HTML_BLOCK;
 					<td>{$match->away_team_name}</td>
 				</tr>
 HTML_BLOCK;
-		}
+        }
 
-		echo <<<HTML_BLOCK
+        echo <<<HTML_BLOCK
 				<tbody>
 			</table>
 HTML_BLOCK;
 // 		echo "<pre>"; print_r($list); echo "\n{$query}</pre>";
 
-		$query =  <<<SQL_BLOCK
+        $query = <<<SQL_BLOCK
 SELECT 
 	COALESCE(home_team.team_name, game_matches.home_team_description) AS home_team_name, 
 	COALESCE(away_team.team_name, game_matches.away_team_description) AS away_team_name, 
@@ -402,11 +374,10 @@ WHERE game_match_referees.referee_id IS NULL
 ORDER BY game_match_time.match_time IS NULL, game_match_time.match_time, game_matches.match_id
 SQL_BLOCK;
 
-		$list = $database->read($query, 'match_id');
-		
-		if($list)
-		{
-			echo <<<HTML_BLOCK
+        $list = $database->read($query, 'match_id');
+
+        if ($list) {
+            echo <<<HTML_BLOCK
 			<h2>Obokade Matcher</h2>
 			<table>
 				<thead>
@@ -422,17 +393,16 @@ SQL_BLOCK;
 				<tbody>
 HTML_BLOCK;
 
-			$odd = FALSE;
-			foreach($list as $match_id => $match)
-			{
-				$match = (object) $match;
+            $odd = false;
+            foreach ($list as $match_id => $match) {
+                $match = (object)$match;
 
-				$url = e("?u={$user->referee_code}&book={$match_id}");
-				$url2 = e("?u={$user->referee_code}&play={$match_id}");
-				$row_class = (($odd = !$odd) ? 'odd' : 'even');
-				$short_time = substr($match->match_time, 11, 5);
+                $url = $e("?u={$user->referee_code}&book={$match_id}");
+                $url2 = $e("?u={$user->referee_code}&play={$match_id}");
+                $row_class = (($odd = !$odd) ? 'odd' : 'even');
+                $short_time = substr($match->match_time, 11, 5);
 
-				echo <<<HTML_BLOCK
+                echo <<<HTML_BLOCK
 				<tr class='{$row_class}'>
 					<td>{$match->match_id}</td>
 					<td>{$match->field_id}</td>
@@ -442,15 +412,15 @@ HTML_BLOCK;
 					<td><a href='{$url2}'>Döm</a>, <a href='{$url}'>Boka</a></td>
 				</tr>
 HTML_BLOCK;
-			}
+            }
 
-			echo <<<HTML_BLOCK
+            echo <<<HTML_BLOCK
 				</tbody>
 			</table>
 HTML_BLOCK;
-		}
+        }
 
-		$query = <<<SQL_BLOCK
+        $query = <<<SQL_BLOCK
 SELECT 
 	COALESCE(home_team.team_name, game_matches.home_team_description) AS home_team_name, 
 	COALESCE(away_team.team_name, game_matches.away_team_description) AS away_team_name, 
@@ -469,12 +439,11 @@ WHERE
 	game_match_referees.referee_id = {$user->referee_id}
 SQL_BLOCK;
 
-		/** @var MatchResult[] $list */
-		$list = $database->objects($query, 'match_id');
+        /** @var MatchResult[] $list */
+        $list = $database->objects($query, 'match_id');
 
-		if($list)
-		{
-			echo <<<HTML_BLOCK
+        if ($list) {
+            echo <<<HTML_BLOCK
 			<h2>Mina dömda Matcher</h2>
 			<table>
 				<thead>
@@ -488,14 +457,13 @@ SQL_BLOCK;
 				<tbody>
 HTML_BLOCK;
 
-			$odd = FALSE;
-			foreach($list as $match_id => $match)
-			{
-				$url = e("?u={$user->referee_code}&book={$match_id}");
-				$url2 = e("?u={$user->referee_code}&play={$match_id}");
-				$row_class = (($odd = !$odd) ? 'odd' : 'even');
+            $odd = false;
+            foreach ($list as $match_id => $match) {
+                $url = $e("?u={$user->referee_code}&book={$match_id}");
+                $url2 = $e("?u={$user->referee_code}&play={$match_id}");
+                $row_class = (($odd = !$odd) ? 'odd' : 'even');
 
-				echo <<<HTML_BLOCK
+                echo <<<HTML_BLOCK
 				<tr class='{$row_class}'>
 					<td>{$match->match_id}</td>
 					<td>{$match->match_time}</td>
@@ -505,17 +473,20 @@ HTML_BLOCK;
 					<td>{$match->away_goals}</td>
 				</tr>
 HTML_BLOCK;
-			}
+            }
 
-			echo <<<HTML_BLOCK
+            echo <<<HTML_BLOCK
 				</tbody>
 			</table>
 HTML_BLOCK;
-		}
-
-	}
-	echo <<<HTML_BLOCK
+        }
+    }
+    echo <<<HTML_BLOCK
 		</div>
 	</body>
 </html>
 HTML_BLOCK;
+})(
+    Database::$me,
+    strtoupper(DB_NAME)
+);

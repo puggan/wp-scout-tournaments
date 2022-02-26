@@ -1,25 +1,29 @@
 <?php
 
-	use PHPDoc\Models\GameBreak;
+namespace Puggan\Ibn\D;
 
-	date_default_timezone_set('Europe/Stockholm');
+use PHPDoc\Models\GameBreak;
 
-	require_once __DIR__ . '/db.php';
+date_default_timezone_set('Europe/Stockholm');
 
-	function e($s) {return htmlentities($s, ENT_QUOTES | ENT_HTML5);}
+require_once __DIR__ . '/db.php';
+(static function (Database $database, string $siteName) {
+    $e = static function ($s) {
+        return htmlentities($s, ENT_QUOTES | ENT_HTML5);
+    };
 
-	$now = date('Y-m-d H:i:s');
-	$query = 'SELECT game_teams.* FROM game_teams LEFT JOIN game_attendance USING (team_id) WHERE game_attendance.team_id IS NULL';
-	$attendance_missing = $database->objects($query);
-	$query = 'SELECT game_teams.* FROM game_teams LEFT JOIN game_attendance USING (team_id) WHERE game_attendance.team_id IS NOT NULL';
-	$attendance_arived = $database->objects($query);
+    $now = date('Y-m-d H:i:s');
+    $query = 'SELECT game_teams.* FROM game_teams LEFT JOIN game_attendance USING (team_id) WHERE game_attendance.team_id IS NULL';
+    $attendance_missing = $database->objects($query);
+    $query = 'SELECT game_teams.* FROM game_teams LEFT JOIN game_attendance USING (team_id) WHERE game_attendance.team_id IS NOT NULL';
+    $attendance_arived = $database->objects($query);
 
-	$next_break = null;
-	/** @var GameBreak[] $breaks */
-	$breaks = $database->objects('SELECT * FROM game_breaks WHERE break_to > NOW() ORDER BY break_from');
-	if($breaks) $next_break = array_shift($breaks);
+    $next_break = null;
+    /** @var GameBreak[] $breaks */
+    $breaks = $database->objects('SELECT * FROM game_breaks WHERE break_to > NOW() ORDER BY break_from');
+    if ($breaks) $next_break = array_shift($breaks);
 
-	$fetch_query = <<<SQL_BLOCK
+    $fetch_query = <<<SQL_BLOCK
 SELECT
 	match_id,
 	COALESCE(home_team.team_name, home_team_description) AS home_team_name,
@@ -39,14 +43,14 @@ FROM game_matches
 	LEFT JOIN game_results USING (match_id)
 GROUP BY game_matches.match_id
 ORDER BY
-	IF(game_match_time.match_status = 'PLAYED', game_match_time.match_time, NULL) DESC,
-	game_match_time.match_time,
-    game_match_time.field_id
+	IF(MAX(game_match_time.match_status) = 'PLAYED', MAX(game_match_time.match_time), NULL) DESC,
+	MAX(game_match_time.match_time),
+    MAX(game_match_time.field_id)
 SQL_BLOCK;
 
-	$matches = $database->objects($fetch_query);
+    $matches = $database->objects($fetch_query);
 
-	echo <<<HTML_BLOCK
+    echo <<<HTML_BLOCK
 <html>
 	<head>
 		<title>{$siteName} - Mål</title>
@@ -69,29 +73,27 @@ SQL_BLOCK;
 		<div style='width: 800px; margin: auto;'>
 HTML_BLOCK;
 
-	if(false && $attendance_missing) {
-		echo '<h2>Närvarande?</h2><ul style="color: #cc6600; font-size: 1.2em;">';
-		foreach($attendance_missing as $a)
-		{
-			echo '<li>' . e($a->team_name) . ' här?</li>';
-		}
-		echo '</ul><ul style="font-size: 0.7em; color: gray;">';
-		foreach($attendance_arived as $a)
-		{
-			echo '<li>' . e($a->team_name) . ' är här</li>';
-		}
-		echo '</ul>';
-	}
+    /*
+    if (false && $attendance_missing) {
+        echo '<h2>Närvarande?</h2><ul style="color: #cc6600; font-size: 1.2em;">';
+        foreach ($attendance_missing as $a) {
+            echo '<li>' . $e($a->team_name) . ' här?</li>';
+        }
+        echo '</ul><ul style="font-size: 0.7em; color: gray;">';
+        foreach ($attendance_arived as $a) {
+            echo '<li>' . $e($a->team_name) . ' är här</li>';
+        }
+        echo '</ul>';
+    }
+    */
 
-	$index = 0;
-    $played = array();
+    $index = 0;
+    $played = [];
 
-	foreach($matches as $index => $match)
-	{
-		if($matches[$index]->match_status === 'STARTED')
-		{
-			$short_time = substr($match->match_time, 11, 5);
-			echo <<<HTML_BLOCK
+    foreach ($matches as $index => $match) {
+        if ($matches[$index]->match_status === 'STARTED') {
+            $short_time = substr($match->match_time, 11, 5);
+            echo <<<HTML_BLOCK
 			<h1 style="margin: 0;">
 				<span class='side'>{$match->field_id}: </span>
 				<span class='team'>{$match->home_team_name}</span>
@@ -102,18 +104,15 @@ HTML_BLOCK;
 				<span class='ttime' style="font-size: 0.5em;">({$short_time})</span>
 			</h1>
 	HTML_BLOCK;
-			unset($matches[$index]);
-		}
-	}
-	foreach($matches as $index => $match)
-	{
-		if($matches[$index]->match_status === 'PLAYED')
-		{
-			if(empty($played[$match->field_id]) && $matches[$index]->match_time < $now)
-			{
-				$played[$match->field_id] = TRUE;
-				$short_time = substr($match->match_time, 11, 5);
-				echo <<<HTML_BLOCK
+            unset($matches[$index]);
+        }
+    }
+    foreach ($matches as $index => $match) {
+        if ($matches[$index]->match_status === 'PLAYED') {
+            if (empty($played[$match->field_id]) && $matches[$index]->match_time < $now) {
+                $played[$match->field_id] = true;
+                $short_time = substr($match->match_time, 11, 5);
+                echo <<<HTML_BLOCK
 			<h3 style="margin: 0;">
 				<span class='side'>{$match->field_id}: </span>
 				<span class='team'>{$match->home_team_name}</span>
@@ -124,12 +123,12 @@ HTML_BLOCK;
 				<span class='ttime'>({$short_time})</span>
 			</h3>
 HTML_BLOCK;
-			}
-			unset($matches[$index]);
-		}
-	}
+            }
+            unset($matches[$index]);
+        }
+    }
 
-	echo <<<HTML_BLOCK
+    echo <<<HTML_BLOCK
 			<h2>Kommande matcher</h1>
 			<table>
 				<thead>
@@ -145,21 +144,19 @@ HTML_BLOCK;
 				<tbody>
 HTML_BLOCK;
 
-	$odd = FALSE;
-	foreach($matches as $match)
-	{
-		while($next_break AND $next_break->break_from < $match->match_time)
-		{
-			echo '<tr>';
-			echo '<td>' . htmlentities(substr($next_break->break_from, 11, 5), ENT_QUOTES | ENT_HTML5) . '</td>';
-			echo '<td colspan="6" style="text-align: center; padding: 5px; font-weight: bold;">' . htmlentities( $next_break->break_name, ENT_QUOTES | ENT_HTML5) . '</td>';
-			echo '</tr>';
+    $odd = false;
+    foreach ($matches as $match) {
+        while ($next_break and $next_break->break_from < $match->match_time) {
+            echo '<tr>';
+            echo '<td>' . htmlentities(substr($next_break->break_from, 11, 5), ENT_QUOTES | ENT_HTML5) . '</td>';
+            echo '<td colspan="6" style="text-align: center; padding: 5px; font-weight: bold;">' . htmlentities($next_break->break_name, ENT_QUOTES | ENT_HTML5) . '</td>';
+            echo '</tr>';
 
-			$next_break = null;
-			if($breaks) $next_break = array_shift($breaks);
-		}
-		$short_time = substr($match->match_time, 11, 5);
-		$table_class_row = (($odd = !$odd) ? 'odd' : 'even');
+            $next_break = null;
+            if ($breaks) $next_break = array_shift($breaks);
+        }
+        $short_time = substr($match->match_time, 11, 5);
+        $table_class_row = (($odd = !$odd) ? 'odd' : 'even');
         echo <<<HTML_BLOCK
 					<tr class='{$table_class_row}'>
 						<td>{$short_time}</td>
@@ -170,23 +167,22 @@ HTML_BLOCK;
 						<td>{$match->group_name}</td>
 					</tr>
 HTML_BLOCK;
-	}
-	while($next_break AND $next_break->break_from < $match->match_time)
-	{
-		echo '<tr>';
-		echo '<td>' . htmlentities(substr($next_break->break_from, 11, 5), ENT_QUOTES | ENT_HTML5) . '</td>';
-		echo '<td colspan="6" style="text-align: center; padding: 5px; font-weight: bold;">' . htmlentities($next_break->break_name, ENT_QUOTES | ENT_HTML5) . '</td>';
-		echo '</tr>';
+    }
+    while ($next_break and $next_break->break_from < $match->match_time) {
+        echo '<tr>';
+        echo '<td>' . htmlentities(substr($next_break->break_from, 11, 5), ENT_QUOTES | ENT_HTML5) . '</td>';
+        echo '<td colspan="6" style="text-align: center; padding: 5px; font-weight: bold;">' . htmlentities($next_break->break_name, ENT_QUOTES | ENT_HTML5) . '</td>';
+        echo '</tr>';
 
-		$next_break = null;
-		if($breaks) $next_break = array_shift($breaks);
-	}
-	echo <<<HTML_BLOCK
+        $next_break = null;
+        if ($breaks) $next_break = array_shift($breaks);
+    }
+    echo <<<HTML_BLOCK
 				</tbody>
 			</table>
 HTML_BLOCK;
 
-	echo <<<HTML_BLOCK
+    echo <<<HTML_BLOCK
 		</div>
 		<p style="text-align: center;">Se resultat och schema i mobilen på {$_SERVER['SERVER_NAME']}</p>
 		<p style="text-align: center;">Wifi: Linksys</p>
@@ -194,3 +190,7 @@ HTML_BLOCK;
 	</body>
 </html>
 HTML_BLOCK;
+})(
+    Database::$me,
+    strtoupper(DB_NAME)
+);
