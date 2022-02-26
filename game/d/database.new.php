@@ -1,252 +1,263 @@
 <?php
 
-	// require_once("/mnt/data/www/libs/database.php");
-	// $database = new database('use dbname', 'username', 'password');
+namespace Puggan\Ibn\D;
 
-	class database
-	{
-		public $link;
-		public $last_query;
+// require_once("/mnt/data/www/libs/database.php");
+// $database = new database('use dbname', 'username', 'password');
 
-		function __construct($database, $username, $password, $host = NULL, $port = NULL)
-		{
-			if(!$host)
-			{
-				$this->link = new mysqli('localhost', $username, $password, $database);
-			}
-			else if(!$port)
-			{
-				$this->link = new mysqli($host, $username, $password, $database);
-			}
-			else
-			{
-				$this->link = new mysqli($host, $username, $password, $database, $port);
-			}
+class database
+{
+    public ?\mysqli $link = null;
+    public string $last_query = '';
+    public string $last_error = '';
 
-			if($this->link)
-			{
-				$this->link->set_charset("utf8");
-			}
-			else
-			{
-				$this->last_error = 'No database connection';
-				trigger_error('Database fel: ' . $this->last_error);
-			}
-		}
+    public function __construct($database, $username, $password, $host = null, $port = null)
+    {
+        if (!$host) {
+            $this->link = new \mysqli('localhost', $username, $password, $database);
+        } elseif (!$port) {
+            $this->link = new \mysqli($host, $username, $password, $database);
+        } else {
+            $this->link = new \mysqli($host, $username, $password, $database, $port);
+        }
 
-		function __destruct()
-		{
-			unset($this->link);
-		}
+        $this->link->set_charset("utf8");
+    }
 
-		function query($query)
-		{
-			if(!$this->link OR !$this->link->ping())
-			{
-				$this->link = NULL;
-				$this->last_error = 'No database connection';
-				trigger_error('Database fel: ' . $this->last_error);
-				return FALSE;
-			}
+    /** @noinspection PhpMissingReturnTypeInspection not allowed on __destruct */
+    public function __destruct()
+    {
+        unset($this->link);
+    }
 
-			$this->last_error = NULL;
-			$this->last_query = $query;
+    /**
+     * @param string $query
+     * @return \mysqli_result|true
+     */
+    public function query(string $query): \mysqli_result|bool
+    {
+        if (!$this->link || !$this->link->ping()) {
+            $this->link = null;
+            $this->last_error = 'No database connection';
+            throw new \RuntimeException('Database fel: ' . $this->last_error);
+        }
 
-			return $this->link->query($query);
-		}
+        $this->last_error = null;
+        $this->last_query = $query;
 
-		function write($query)
-		{
-			$result = $this->query($query);
+        $result = $this->link->query($query);
+        if ($result === false) {
+            throw new \RuntimeException('query failed');
+        }
+        return $result;
+    }
 
-			if(!$result) return FALSE;
+    public function readQuery(string $query): \mysqli_result
+    {
+        $result = $this->query($query);
+        if ($result instanceof \mysqli_result) {
+            return $result;
+        }
+        throw new \RuntimeException('none select-query');
+    }
 
-			if($result === TRUE) return TRUE;
+    public function write(string $query): void
+    {
+        $result = $this->query($query);
+        if ($result instanceof \mysqli_result) {
+            $result->free();
+            throw new \RuntimeException('Select query in write-statement');
+        }
+        if ($result !== true) {
+            throw new \RuntimeException('query failed');
+        }
+    }
 
-			if(is_a($result, "mysqli_result"))
-			{
-				$result->free();
-			}
+    public function insert(string $query): int|string
+    {
+        $this->write($query);
 
-			return FALSE;
-		}
+        return $this->link->insert_id;
+    }
 
-		function insert($query)
-		{
-			$result = $this->write($query);
+    public function update(string $query): int|string
+    {
+        $this->write($query);
 
-			if($result) return $this->link->insert_id;
+        return $this->link->affected_rows;
+    }
 
-			return $result;
-		}
+    public function read(string $query, ?string $index = null, ?string $column = null): array
+    {
+        $resource = $this->readQuery($query);
 
-		function update($query)
-		{
-			$result = $this->write($query);
+        $result = $resource->fetch_all(MYSQLI_ASSOC);
+        $resource->free();
 
-			if($result) return $this->link->affected_rows;
+        if ($index) {
+            if ($column) {
+                return array_column($result, $column, $index);
+            }
 
-			return $result;
-		}
+            return array_column($result, null, $index);
+        }
 
-		function read($query, $index = NULL, $column = NULL)
-		{
-			$resource = $this->query($query);
+        if ($column) {
+            return array_column($result, $column);
+        }
 
-			if(!is_a($resource, "mysqli_result")) return FALSE;
+        return $result;
+    }
 
-			$result = $resource->fetch_all(MYSQLI_ASSOC);
-			$resource->free();
+    public function gRead(string $query, ?string $index = null, ?string $column = null): \Generator
+    {
+        $resource = $this->readQuery($query);
 
-			if($index AND $column)
-			{
-				$result = array_column($result, $column, $index);
-			}
-			else if($index)
-			{
-				$result = array_column($result, NULL, $index);
-			}
-			else if($column)
-			{
-				$result = array_column($result, $column);
-			}
+        if ($index && $column) {
+            while (null !== ($row = $resource->fetch_array(MYSQLI_ASSOC))) {
+                yield $row[$index] => $row[$column];
+            }
+        } elseif ($index) {
+            while (null !== ($row = $resource->fetch_array(MYSQLI_ASSOC))) {
+                yield $row[$index] => $row;
+            }
+        } elseif ($column) {
+            while (null !== ($row = $resource->fetch_array(MYSQLI_ASSOC))) {
+                yield $row[$column];
+            }
+        } else {
+            while (null !== ($row = $resource->fetch_array(MYSQLI_ASSOC))) {
+                yield $row;
+            }
+        }
 
-			return $result;
-		}
+        $resource->free();
+    }
 
-		function g_read($query, $index = NULL, $column = NULL)
-		{
-			$resource = $this->query($query);
+    /**
+     * @param string $query
+     * @param ?string $index
+     * @param ?string $className
+     * @return array
+     * @phpstan-return T[]
+     * @phpstan-template T
+     */
+    public function objects(string $query, ?string $index = null, ?string $className = null): array
+    {
+        $result = [];
+        $resource = $this->readQuery($query);
 
-			//if(!is_a($resource, "mysqli_result")) return FALSE;
-			if(!is_a($resource, "mysqli_result")) return;
+        $class = $className ?: \stdClass::class;
+        if ($index) {
+            while (null !== ($row = $resource->fetch_object($class))) {
+                $result[$row->$index] = $row;
+            }
+        } else {
+            while (null !== ($row = $resource->fetch_object($class))) {
+                $result[] = $row;
+            }
+        }
 
-			while(NULL !== ($row = $resource->fetch_array(MYSQLI_ASSOC)))
-			{
-				if($index AND $column)
-				{
-					yield $row[$index] => $row[$column];
-				}
-				else if($index)
-				{
-					yield $row[$index] => $row;
-				}
-				else if($column)
-				{
-					yield $row[$column];
-				}
-				else
-				{
-					yield $row;
-				}
-			}
+        $resource->free();
 
-			$resource->free();
-		}
+        return $result;
+    }
 
-		function objects($query, $index = NULL, $class_name = NULL)
-		{
-			$result = array();
-			$resource = $this->query($query);
+    /**
+     * @param string $query
+     * @param ?string $index
+     * @param ?string $className
+     * @phpstan-param class-string<T>
+     * @return \Generator
+     * @phpstan-return \Generator<T>
+     * @phpstan-template T
+     */
+    public function gObjects(string $query, ?string $index = null, ?string $className = null): \Generator
+    {
+        $class = $className ?: \stdClass::class;
+        $resource = $this->readQuery($query);
 
-			if(!is_a($resource, "mysqli_result")) return FALSE;
+        if ($index) {
+            while (null !== ($row = $resource->fetch_object($class))) {
+                yield $row->$index => $row;
+            }
+        } else {
+            while (null !== ($row = $resource->fetch_object($class))) {
+                yield $row;
+            }
+        }
 
-			while(NULL !== ($row = $resource->fetch_object($class_name ?: 'stdClass')))
-			{
-				if($index)
-				{
-					$result[$row->$index] = $row;
-				}
-				else
-				{
-					$result[] = $row;
-				}
-			}
+        $resource->free();
+    }
 
-			$resource->free();
+    public function get(string $query, ?array $default = null)
+    {
+        $resource = $this->readQuery($query);
 
-			return $result;
-		}
+        $row = $resource->fetch_array(MYSQLI_ASSOC);
 
-		function g_objects($query, $index = NULL, $class_name = NULL)
-		{
-			$resource = $this->query($query);
+        $resource->free();
 
-			if(!is_a($resource, "mysqli_result")) return FALSE;
+        if ($row === false) {
+            throw new \RuntimeException('Fetch failed');
+        }
 
-			while(NULL !== ($row = $resource->fetch_object($class_name ?: 'stdClass')))
-			{
-				if($index)
-				{
-					yield $row->$index => $row;
-				}
-				else
-				{
-					yield $row;
-				}
-			}
+        if ($row === null) {
+            return $default;
+        }
 
-			$resource->free();
-		}
+        if (is_array($row) && count($row) === 1) {
+            return array_values($row)[0];
+        }
 
-		function get($query, $default = FALSE)
-		{
-			$resource = $this->query($query);
+        return $row;
+    }
 
-			if(!is_a($resource, "mysqli_result")) return FALSE;
+    /**
+     * @param string $query
+     * @param ?object $default
+     * @phpstan-param ?T
+     * @param ?string $className
+     * @phpstan-param ?class-string<T>
+     * @return object
+     * @phpstan-return T
+     * @phpstan-template T
+     */
+    public function object(string $query, ?object $default = null, ?string $className = null): object
+    {
+        $resource = $this->readQuery($query);
 
-			$row = $resource->fetch_array(MYSQLI_ASSOC);
+        $row = $resource->fetch_object($className ?: \stdClass::class);
 
-			$resource->free();
+        if ($row === false) {
+            throw new \RuntimeException('Fetch failed');
+        }
 
-			if(!$row)
-			{
-				return $default;
-			}
+        $resource->free();
 
-			if(is_array($row) AND count($row) == 1)
-			{
-				return array_values($row)[0];
-			}
+        return $row ?: $default;
+    }
 
-			return $row;
-		}
+    /**
+     * @param \mysqli_result $resource
+     * @return ?array<int,string|int|bool|float|null>
+     */
+    public function fetch(\mysqli_result $resource): ?array
+    {
+        $result = $resource->fetch_array(MYSQLI_ASSOC);
+        if ($result === false) {
+            throw new \RuntimeException('fetch failed');
+        }
+        return $result;
+    }
 
-		function object($query, $default = FALSE, $class_name = NULL)
-		{
-			$resource = $this->query($query);
+    public function close(\mysqli_result $resource): void
+    {
+        $resource->free();
+    }
 
-			if(!is_a($resource, "mysqli_result")) return FALSE;
-
-			$row = $resource->fetch_object($class_name ?: 'stdClass');
-
-			$resource->free();
-
-			if(!$row)
-			{
-				return $default;
-			}
-
-			if(is_array($row) AND count($row) == 1)
-			{
-				return array_values($row)[0];
-			}
-
-			return $row;
-		}
-
-		function fetch($resource)
-		{
-			return $resource->fetch_array(MYSQLI_ASSOC);
-		}
-
-		function close($resource)
-		{
-			return $resource->free();
-		}
-
-		function quote($string)
-		{
-			return "'" . $this->link->real_escape_string($string) . "'";
-		}
-	}
+    public function quote(string $string): string
+    {
+        return "'" . $this->link->real_escape_string($string) . "'";
+    }
+}
