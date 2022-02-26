@@ -32,17 +32,17 @@ class ScoutTournament
         $menu_slug = 'game';
         $capability = 'edit_pages';
         /** @noinspection UnusedFunctionResultInspection */
-        add_menu_page('Administrera Spel', 'Spel', $capability, $menu_slug, 'ScoutTournament::game_page', $icon_url, 58);
+        add_menu_page('Administrera Spel', 'Spel', $capability, $menu_slug, [self::class, 'game_page'], $icon_url, 58);
         /** @noinspection UnusedFunctionResultInspection */
-        add_submenu_page($menu_slug, 'Deltagande Lag', 'Lag', $capability, $menu_slug . '_teams', 'ScoutTournament::game_team_page');
+        add_submenu_page($menu_slug, 'Deltagande Lag', 'Lag', $capability, $menu_slug . '_teams', [self::class, 'game_team_page']);
         /** @noinspection UnusedFunctionResultInspection */
-        add_submenu_page($menu_slug, 'Grupper', 'Grupp', $capability, $menu_slug . '_groups', 'ScoutTournament::game_group_page');
+        add_submenu_page($menu_slug, 'Grupper', 'Grupp', $capability, $menu_slug . '_groups', [self::class, 'game_group_page']);
         /** @noinspection UnusedFunctionResultInspection */
-        add_submenu_page($menu_slug, 'Matcher', 'Match', $capability, $menu_slug . '_match', 'ScoutTournament::game_match_page');
+        add_submenu_page($menu_slug, 'Matcher', 'Match', $capability, $menu_slug . '_match', [self::class, 'game_match_page']);
         /** @noinspection UnusedFunctionResultInspection */
-        add_submenu_page($menu_slug, 'Edit Match', 'Edit Match', $capability, $menu_slug . '_edit_match', 'ScoutTournament::game_edit_match_page');
+        add_submenu_page($menu_slug, 'Edit Match', 'Edit Match', $capability, $menu_slug . '_edit_match', [self::class, 'game_edit_match_page']);
         /** @noinspection UnusedFunctionResultInspection */
-        add_submenu_page($menu_slug, 'Domare', 'Domare', $capability, $menu_slug . '_referees', 'ScoutTournament::game_referees_page');
+        add_submenu_page($menu_slug, 'Domare', 'Domare', $capability, $menu_slug . '_referees', [self::class, 'game_referees_page']);
     }
 
     //<editor-fold desc="Functions">
