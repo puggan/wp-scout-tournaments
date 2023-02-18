@@ -1094,11 +1094,11 @@ class ScoutTournament
                 /** @var MatchWithExtra $safe_match */
                 $safe_match = self::html_encode_object($match);
                 /** @var Team $safe_home_team */
-                $safe_home_team = isset($teams[$match->home_team_id]) ? self::html_encode_object($teams[$match->home_team_id]) : new \stdClass();
+                $safe_home_team = isset($teams[$match->home_team_id]) ? self::html_encode_object($teams[$match->home_team_id]) : (object) ['class_name' => '', 'team_name' => ''];
                 /** @var Team $safe_away_team */
-                $safe_away_team = isset($teams[$match->away_team_id]) ? self::html_encode_object($teams[$match->away_team_id]) : new \stdClass();
-                $home_team_name = $match->home_team_id ? $safe_home_team->team_name : $match->home_team_description;
-                $away_team_name = $match->away_team_id ? $safe_away_team->team_name : $match->away_team_description;
+                $safe_away_team = isset($teams[$match->away_team_id]) ? self::html_encode_object($teams[$match->away_team_id]) : (object) ['class_name' => '', 'team_name' => ''];
+                $home_team_name = $safe_home_team->team_name ?: $match->home_team_description;
+                $away_team_name = $safe_away_team->team_name ?: $match->away_team_description;
                 $match_time = $match->match_time ? $safe_match->match_time : '(set)';
                 $tr_class = 'match_status_' . strtolower($safe_match->match_status);
                 $goals = ($safe_match->home_goals ?: 0) . ' - ' . ($safe_match->away_goals ?: 0);

@@ -10,8 +10,8 @@ class Database
     public static ?self $me = null;
 
     public ?\mysqli $link = null;
-    public string $last_query = '';
-    public string $last_error = '';
+    public ?string $last_query = null;
+    public ?string $last_error = null;
 
     public function __construct($database, $username, $password, $host = null, $port = null)
     {
@@ -229,7 +229,7 @@ class Database
      * @phpstan-return T
      * @phpstan-template T
      */
-    public function object(string $query, ?object $default = null, ?string $className = null): object
+    public function object(string $query, ?object $default = null, ?string $className = null): ?object
     {
         $resource = $this->readQuery($query);
 

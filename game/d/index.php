@@ -218,13 +218,13 @@ SQL_BLOCK;
         }
 
         if (!empty($_GET['swap'])) {
-            $side_1 = 'home';
-            $side_2 = 'away';
+            $side_1 = 'away';
+            $side_2 = 'home';
             $swap_url = $url;
             $form_url = $url . '&swap=1';
         } else {
-            $side_1 = 'away';
-            $side_2 = 'home';
+            $side_1 = 'home';
+            $side_2 = 'away';
             $form_url = $url;
             $swap_url = $url . '&swap=1';
         }
@@ -317,7 +317,11 @@ WHERE
 	(game_results.done IS NULL OR game_results.done = 0)
 	AND
 	game_match_referees.referee_id = {$user->referee_id}
-ORDER BY game_match_time.match_time, game_match_time.field_id
+    AND
+    game_matches.match_type <> 'HIDDEN'
+ORDER BY
+    game_match_time.match_time,
+    game_match_time.field_id
 SQL_BLOCK;
 
         $list = $database->objects($query, 'match_id');
@@ -370,8 +374,14 @@ FROM game_matches
 	LEFT JOIN game_teams AS away_team ON (away_team.team_id = game_matches.away_team_id) 
 	LEFT JOIN game_match_referees USING (match_id) 
 	LEFT JOIN game_match_time USING (match_id) 
-WHERE game_match_referees.referee_id IS NULL
-ORDER BY game_match_time.match_time IS NULL, game_match_time.match_time, game_matches.match_id
+WHERE
+    game_match_referees.referee_id IS NULL
+    AND
+    game_matches.match_type <> 'HIDDEN'
+ORDER BY
+    game_match_time.match_time IS NULL,
+    game_match_time.match_time,
+    game_matches.match_id
 SQL_BLOCK;
 
         $list = $database->read($query, 'match_id');

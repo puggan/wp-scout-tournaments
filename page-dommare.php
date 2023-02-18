@@ -39,10 +39,13 @@
 	game_match_time.match_time,
 	game_results.done,
 	game_results.home_goals,
-	game_results.away_goals
+	game_results.away_goals,
+	game_referees.referee_name
 	FROM game_matches
 	LEFT JOIN game_match_time USING (match_id)
 	LEFT JOIN game_results USING (match_id)
+	LEFT JOIN game_match_referees USING (match_id)
+	LEFT JOIN game_referees ON (game_match_referees.referee_id = game_referees.referee_id)
 	WHERE game_matches.match_type <> 'HIDDEN'
 	ORDER BY
 	game_match_time.match_time IS NULL,
@@ -64,7 +67,7 @@ SQL_QUERY;
                                         echo "<th>Lag 1</th>";
                                         echo "<th>Mål</th>";
                                         echo "<th>Lag 2</th>";
-                                        echo "<th>Grupp</th>";
+                                        echo "<th>Dommare</th>";
 // 		echo "<th>Klass</th>";
                                         echo "</tr>";
                                         echo "</thead>";
@@ -104,12 +107,7 @@ SQL_QUERY;
                                                 echo "<td>{$match->away_team_description}</td>";
                                             }
 
-                                            if ($match->match_type === 'GROUP') {
-                                                echo "<td>{$teams[$match->home_team_id]->group_name}</td>";
-                                            } else {
-                                                echo "<td></td>";
-                                            }
-                                            // 			echo "<td>{$teams[$match->home_team_id]->class_name}</td>";
+                                            echo "<td>{$match->referee_name}</td>";
                                             echo "</tr>";
                                         }
 
